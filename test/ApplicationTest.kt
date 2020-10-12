@@ -1,6 +1,5 @@
 package com.laterball.server
 
-import com.laterball.server.com.laterball.server.module
 import io.ktor.client.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.*
