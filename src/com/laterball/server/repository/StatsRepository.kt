@@ -1,21 +1,11 @@
 package com.laterball.server.repository
 
-import com.laterball.server.model.LeagueId
 import com.laterball.server.api.DataApi
-import com.laterball.server.api.model.ApiFixtureStats
+import com.laterball.server.api.model.Fixture
+import com.laterball.server.api.model.Statistics
 
-class StatsRepository(private val fixtureRepository: FixtureRepository, dataApi: DataApi) {
-
-    // Map of league ID to stats for
-    private val leagueStatsMap: Map<Int, LeagueStats> = emptyMap()
-
-    fun getStatsForFixture(leagueId: LeagueId, fixtureId: Int): ApiFixtureStats {
-
+class StatsRepository(private val dataApi: DataApi) : DataRepository<Statistics>() {
+    override fun fetch(fixture: Fixture): Statistics? {
+        return dataApi.getStats(fixture.fixture_id)?.statistics
     }
-
-
-}
-
-class LeagueStats {
-    val statsMap: Map<Int, ApiFixtureStats> = emptyMap()
 }

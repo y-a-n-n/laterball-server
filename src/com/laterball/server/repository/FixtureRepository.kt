@@ -15,7 +15,7 @@ class FixtureRepository(private val dataApi: DataApi) {
         return if (needsUpdate(leagueId)) {
             lastUpdatedMap[leagueId.id] = System.currentTimeMillis()
             val updated = dataApi.getFixtures(leagueId.id)
-            fixtureCache[leagueId.id] = updated
+            updated?.let { fixtureCache[leagueId.id] = it }
             updated
         } else {
             current
