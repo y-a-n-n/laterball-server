@@ -1,20 +1,38 @@
 package com.laterball.server.api.model
 
+import com.google.gson.annotations.SerializedName
+
 data class Statistics(
-    val Ball Possession: BallPossession,
-    val Blocked Shots: BlockedShots,
-    val Corner Kicks: CornerKicks,
-    val Fouls: Fouls,
-    val Goalkeeper Saves: GoalkeeperSaves,
-    val Offsides: Offsides,
-    val Passes %: Passes,
-    val Passes accurate: PassesAccurate,
-    val Red Cards: RedCards,
-    val Shots insidebox: ShotsInsidebox,
-    val Shots off Goal: ShotsOffGoal,
-    val Shots on Goal: ShotsOnGoal,
-    val Shots outsidebox: ShotsOutsidebox,
-    val Total Shots: TotalShots,
-    val Total passes: TotalPasses,
-    val Yellow Cards: YellowCards
+    @SerializedName("Ball Possession")
+    val BallPossession: HomeAwayStat,
+    @SerializedName("Blocked Shots")
+    val BlockedShots: HomeAwayStat,
+    @SerializedName("Corner Kicks")
+    val CornerKicks: HomeAwayStat,
+    @SerializedName("Fouls")
+    val Fouls: HomeAwayStat,
+    @SerializedName("Goalkeeper Saves")
+    val GoalkeeperSaves: HomeAwayStat,
+    @SerializedName("Offsides")
+    val Offsides: HomeAwayStat,
+    @SerializedName("Passes %")
+    val PassesPercent: HomeAwayStat,
+    @SerializedName("Passes accurate")
+    val PassesAccurate: HomeAwayStat,
+    @SerializedName("Red Cards")
+    val RedCards: HomeAwayStat,
+    @SerializedName("Shots insidebox")
+    val ShotsInsidebox: HomeAwayStat,
+    @SerializedName("Shots off Goal")
+    val ShotsOffGoal: HomeAwayStat,
+    @SerializedName("Shots on Goal")
+    val ShotsOnGoal: HomeAwayStat,
+    @SerializedName("Shots outsidebox")
+    val ShotsOutsidebox: HomeAwayStat,
+    @SerializedName("Total Shots")
+    val TotalShots: HomeAwayStat,
+    @SerializedName("Total passes")
+    val TotalPasses: HomeAwayStat,
+    @SerializedName("Yellow Cards")
+    val YellowCards: HomeAwayStat
 )

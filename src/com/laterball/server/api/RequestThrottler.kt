@@ -1,24 +1,20 @@
 package com.laterball.server.api
 
-import java.util.*
+import com.laterball.server.repository.Clock
+import com.laterball.server.repository.SystemClock
 
-class RequestThrottler {
+class RequestThrottler(private val clock: Clock = SystemClock(), private val maxPerDay: Int = 100) {
 
-    companion object {
-        private const val REQUESTS_PER_DAY = 100
-    }
-
-    private var lastRolloverDay = Calendar.getInstance()
+    private var lastRolloverDay = clock.dayOfYear
 
     private var requestsToday = 0
 
     val canRequest: Boolean get() {
-        val currentTime = Calendar.getInstance()
-        return if (lastRolloverDay[Calendar.DATE] == currentTime[Calendar.DATE]) {
+        return if (lastRolloverDay == clock.dayOfYear) {
             requestsToday++
-            requestsToday < REQUESTS_PER_DAY
+            requestsToday < maxPerDay
         } else {
-            lastRolloverDay[Calendar.DATE] = currentTime[Calendar.DATE]
+            lastRolloverDay = clock.dayOfYear
             requestsToday = 1
             true
         }
