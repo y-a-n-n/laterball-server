@@ -1,5 +1,7 @@
 package com.laterball.server
 
+import com.laterball.server.model.LeagueId
+import com.laterball.server.repository.RatingsRepository
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.client.*
@@ -13,7 +15,12 @@ import io.ktor.auth.*
 import io.ktor.client.engine.jetty.Jetty
 import io.ktor.gson.*
 import io.ktor.features.*
+import io.ktor.html.respondHtml
 import io.ktor.locations.*
+import kotlinx.html.*
+import org.koin.ktor.ext.Koin
+import org.koin.ktor.ext.inject
+import org.koin.logger.slf4jLogger
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -36,65 +43,55 @@ fun Application.module(testing: Boolean = false) {
     install(Locations) {
     }
 
-    install(CORS) {
-        method(HttpMethod.Options)
-        method(HttpMethod.Put)
-        method(HttpMethod.Delete)
-        method(HttpMethod.Patch)
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+    install(Koin) {
+        slf4jLogger()
+        modules(appModule)
     }
 
-    install(HSTS) {
-        includeSubDomains = true
-    }
+    // Lazy inject HelloService
+    val repo by inject<RatingsRepository>()
 
     // https://ktor.io/servers/features/https-redirect.html#testing
     if (!testing) {
-        install(HttpsRedirect) {
-            // The port to redirect to. By default 443, the default HTTPS port.
-            sslPort = 443
-            // 301 Moved Permanently, or 302 Found redirect.
-            permanentRedirect = true
-        }
+//        install(HttpsRedirect) {
+//            // The port to redirect to. By default 443, the default HTTPS port.
+//            sslPort = 443
+//            // 301 Moved Permanently, or 302 Found redirect.
+//            permanentRedirect = true
+//        }
+//        install(HSTS) {
+//            includeSubDomains = true
+//        }
+
+    }
+
+    install(CORS) {
+        method(HttpMethod.Options)
+        method(HttpMethod.Get)
+        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
 
     routing {
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
+        get("/ratings") {
+            val ratings = repo.getRatingsForLeague(LeagueId.EPL)
+            call.respondHtml {
+                body {
+                    h1 { +"LATERBALL" }
+                    ratings?.let {
+                        ul {
+                            for (rating in it) {
+                                li { +"${rating.homeTeam} ${rating.rating} ${rating.awayTeam}" }
+                            }
+                        }
+                    } ?: h2 { +"No recent games, check back later!" }
+                }
+            }
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
-        static("/static") {
-            resources("static")
-        }
-
-        get("/json/gson") {
-            call.respond(mapOf("hello" to "world"))
-        }
-
-        get<MyLocation> {
-            call.respondText("Location: name=${it.name}, arg1=${it.arg1}, arg2=${it.arg2}")
-        }
-        // Register nested routes
-        get<Type.Edit> {
-            call.respondText("Inside $it")
-        }
-        get<Type.List> {
-            call.respondText("Inside $it")
-        }
+//        static("/static") {
+//            resources("static")
+//        }
     }
-}
-
-data class JsonSampleClass(val hello: String)
-
-@Location("/location/{name}")
-class MyLocation(val name: String, val arg1: Int = 42, val arg2: String = "default")
-
-@Location("/type/{name}") data class Type(val name: String) {
-    @Location("/edit")
-    data class Edit(val type: Type)
-
-    @Location("/list/{page}")
-    data class List(val type: Type, val page: Int)
 }
 

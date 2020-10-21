@@ -13,10 +13,14 @@ class FixtureRepository(private val dataApi: DataApi, private val clock: Clock =
     fun getFixturesForLeague(leagueId: LeagueId): ApiFixtureList? {
         val current = fixtureCache[leagueId.id]
         return if (needsUpdate(leagueId)) {
-            lastUpdatedMap[leagueId.id] = clock.time
-            val updated = dataApi.getFixtures(leagueId.id)
-            updated?.let { fixtureCache[leagueId.id] = it }
-            updated
+            try {
+                lastUpdatedMap[leagueId.id] = clock.time
+                val updated = dataApi.getFixtures(leagueId.id)
+                updated?.let { fixtureCache[leagueId.id] = it }
+                updated
+            } catch (e: Exception) {
+                null
+            }
         } else {
             current
         }

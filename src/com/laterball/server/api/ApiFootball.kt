@@ -13,12 +13,13 @@ import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logging
 import io.ktor.client.request.url
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import kotlinx.coroutines.runBlocking
 
 class ApiFootball : DataApi {
 
     companion object {
-        private const val BASE_URL = "https://api-football-v1.p.rapidapi.com/v2/"
+        private const val BASE_URL = "https://api-football-v1.p.rapidapi.com/v2"
     }
     
     private val requestThrottler = RequestThrottler()
@@ -38,7 +39,8 @@ class ApiFootball : DataApi {
         if (!requestThrottler.canRequest) return null
         return runBlocking {
             return@runBlocking client.get<ApiFixtureList> {
-                url("$BASE_URL/league/$leagueId/last/50")
+                url("$BASE_URL/fixtures/league/$leagueId/last/50")
+                header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
             }
         }
     }
@@ -48,6 +50,7 @@ class ApiFootball : DataApi {
         return runBlocking {
             return@runBlocking client.get<ApiFixtureStats> {
                 url("$BASE_URL/statistics/fixture/$fixtureId")
+                header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
             }
         }
     }
@@ -57,6 +60,7 @@ class ApiFootball : DataApi {
         return runBlocking {
             return@runBlocking client.get<ApiOdds> {
                 url("$BASE_URL/odds/fixture/$fixtureId")
+                header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
             }
         }
     }
@@ -66,6 +70,7 @@ class ApiFootball : DataApi {
         return runBlocking {
             return@runBlocking client.get<ApiFixtureEvents> {
                 url("$BASE_URL/events/$fixtureId")
+                header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
             }
         }
     }
