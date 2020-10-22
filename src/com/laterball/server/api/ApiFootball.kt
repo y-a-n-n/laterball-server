@@ -41,6 +41,7 @@ class ApiFootball : DataApi {
             return@runBlocking client.get<ApiFixtureList> {
                 url("$BASE_URL/fixtures/league/$leagueId/last/50")
                 header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
+                header("X-RapidAPI-Host", "api-football-v1.p.rapidapi.com")
             }
         }
     }
@@ -51,6 +52,7 @@ class ApiFootball : DataApi {
             return@runBlocking client.get<ApiFixtureStats> {
                 url("$BASE_URL/statistics/fixture/$fixtureId")
                 header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
+                header("X-RapidAPI-Host", "api-football-v1.p.rapidapi.com")
             }
         }
     }
@@ -61,6 +63,7 @@ class ApiFootball : DataApi {
             return@runBlocking client.get<ApiOdds> {
                 url("$BASE_URL/odds/fixture/$fixtureId")
                 header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
+                header("X-RapidAPI-Host", "api-football-v1.p.rapidapi.com")
             }
         }
     }
@@ -71,6 +74,7 @@ class ApiFootball : DataApi {
             return@runBlocking client.get<ApiFixtureEvents> {
                 url("$BASE_URL/events/$fixtureId")
                 header("X-RapidAPI-Key", System.getenv("RAPID_API_KEY"))
+                header("X-RapidAPI-Host", "api-football-v1.p.rapidapi.com")
             }
         }
     }

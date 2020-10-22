@@ -79,8 +79,8 @@ fun Application.module(testing: Boolean = false) {
             val analyticsTag = System.getenv("LATERBALL_ANALYTICS_TAG")
             call.respondHtml {
                 head {
-                    link(href = "/static/laterball.css", rel = "stylesheet")
-                    link(href = "https://fonts.googleapis.com/css2?family=Bungee&display=swap", rel = "stylesheet")
+                    styleLink("/static/laterball.css")
+                    link(href = "https://fonts.googleapis.com/css2?family=Roboto+Slab&family=Turret+Road:wght@800&display=swap", rel = "stylesheet")
                     script(type = ScriptType.textJavaScript, src = "https://www.googletagmanager.com/gtag/js?id=$analyticsTag") {}
                     script(type = ScriptType.textJavaScript) {
                         unsafe {
@@ -94,35 +94,46 @@ fun Application.module(testing: Boolean = false) {
                     }
                 }
                 body {
-                    h1 { +"LATERBALL" }
-                    h2 { +"The best football games of the week, ranked without spoilers" }
-                    div(classes = "w3-container") {
+                    div {
+                        style = "width: 100%; text-align:center"
+                        img(src = "/static/laterball_transparent.svg")
+                        h2(classes = "subtitle") { +"The best football games of the week, ranked" }
+                        a(classes = "subtitle", href = "./static/about.html") { +"What is Laterball? ↠" }
+                    }
+                    br {}
+                    br {}
+                    div(classes = "lb-container") {
+                        style = "max-width: 1200px"
                         ratings?.let {
-                            ul(classes = "w3-ul w3-card-4") {
+                            ul(classes = "lb-ul lb-card-4") {
                                 ratings.forEachIndexed { index, rating ->
-                                    li(classes = "w3-bar") {
-                                        span(classes = "w3-bar-item w3-button w3-white w3-medium w3-right") { +"Where to watch?"  }
-                                        img(classes = "w3-bar-item w3-circle w3-hide-small", src = rating.homeLogo) {
+                                    li(classes = "lb-bar lb-border lb-round-xlarge") {
+                                        a(classes = "lb-bar-item lb-medium lb-right subtitle", href = "") { +"Where to watch ↠?"  }
+                                        img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.homeLogo) {
                                             style = "width:85px"
                                         }
-                                        div(classes = "w3-bar-item") {
-                                            span(classes = "w3-large") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
-                                            span { +"#${index + 1} match this week" }
+                                        div(classes = "lb-bar-item") {
+                                            span(classes = "lb-large  block") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
+                                            span(classes = "block") { +"#${index + 1} match this week" }
                                         }
-                                        img(classes = "w3-bar-item w3-circle w3-hide-small", src = rating.awayLogo) {
+                                        img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.awayLogo) {
                                             style = "width:85px"
                                         }
                                     }
                                 }
                             }
-                        } ?: h2 { +"No recent games, check back later!" }
-                        a(href = "/about") {
-                            +"About Laterball"
+                        } ?: h2(classes = "subtitle") {
+                            style = "width: 100%; text-align:center"
+                            +"No recent games, check back later!"
                         }
-                        div { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
                     }
+                    span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
                 }
             }
+        }
+
+        get("/about") {
+
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
