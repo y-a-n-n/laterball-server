@@ -29,7 +29,7 @@ class RatingsRepository(
         return relevantFixtures?.mapNotNull {
             // Calculate the rating only if we don't already have it
             ratingsMap[it] ?: calculateRating(it)
-        }
+        }?.sortedByDescending { it.rating }
     }
 
     private fun calculateRating(fixture: Fixture): Rating? {

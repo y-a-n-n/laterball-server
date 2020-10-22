@@ -21,6 +21,8 @@ import kotlinx.html.*
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.inject
 import org.koin.logger.slf4jLogger
+import java.text.SimpleDateFormat
+import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
@@ -74,24 +76,59 @@ fun Application.module(testing: Boolean = false) {
     routing {
         get("/ratings") {
             val ratings = repo.getRatingsForLeague(LeagueId.EPL)
+            val analyticsTag = System.getenv("LATERBALL_ANALYTICS_TAG")
             call.respondHtml {
+                head {
+                    link(href = "/static/laterball.css", rel = "stylesheet")
+                    link(href = "https://fonts.googleapis.com/css2?family=Bungee&display=swap", rel = "stylesheet")
+                    script(type = ScriptType.textJavaScript, src = "https://www.googletagmanager.com/gtag/js?id=$analyticsTag") {}
+                    script(type = ScriptType.textJavaScript) {
+                        unsafe {
+                            raw("""
+                                window.dataLayer = window.dataLayer || [];
+                                function gtag(){dataLayer.push(arguments);}
+                                gtag('js', new Date());
+                                gtag('config', '$analyticsTag');
+                            """)
+                        }
+                    }
+                }
                 body {
                     h1 { +"LATERBALL" }
-                    ratings?.let {
-                        ul {
-                            for (rating in it) {
-                                li { +"${rating.homeTeam} ${rating.rating} ${rating.awayTeam}" }
+                    h2 { +"The best football games of the week, ranked without spoilers" }
+                    div(classes = "w3-container") {
+                        ratings?.let {
+                            ul(classes = "w3-ul w3-card-4") {
+                                ratings.forEachIndexed { index, rating ->
+                                    li(classes = "w3-bar") {
+                                        span(classes = "w3-bar-item w3-button w3-white w3-medium w3-right") { +"Where to watch?"  }
+                                        img(classes = "w3-bar-item w3-circle w3-hide-small", src = rating.homeLogo) {
+                                            style = "width:85px"
+                                        }
+                                        div(classes = "w3-bar-item") {
+                                            span(classes = "w3-large") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
+                                            span { +"#${index + 1} match this week" }
+                                        }
+                                        img(classes = "w3-bar-item w3-circle w3-hide-small", src = rating.awayLogo) {
+                                            style = "width:85px"
+                                        }
+                                    }
+                                }
                             }
+                        } ?: h2 { +"No recent games, check back later!" }
+                        a(href = "/about") {
+                            +"About Laterball"
                         }
-                    } ?: h2 { +"No recent games, check back later!" }
+                        div { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
+                    }
                 }
             }
         }
 
         // Static feature. Try to access `/static/ktor_logo.svg`
-//        static("/static") {
-//            resources("static")
-//        }
+        static("/static") {
+            resources("static")
+        }
     }
 }
 
