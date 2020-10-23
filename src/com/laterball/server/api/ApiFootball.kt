@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.features.DefaultRequest
+import io.ktor.client.features.HttpResponseValidator
 import io.ktor.client.features.HttpTimeout
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
@@ -12,22 +13,27 @@ import io.ktor.client.features.logging.LogLevel
 import io.ktor.client.features.logging.Logging
 import io.ktor.client.request.url
 import io.ktor.client.request.get
-import io.ktor.config.HoconApplicationConfig
+import io.ktor.config.ApplicationConfig
+import io.ktor.http.ContentType
+import io.ktor.util.KtorExperimentalAPI
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.slf4j.LoggerFactory
 
-class ApiFootball : DataApi {
+@KtorExperimentalAPI
+class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null) : DataApi {
 
     companion object {
         private const val BASE_URL = "https://api-football-v1.p.rapidapi.com/v2"
     }
 
+    private val logger = LoggerFactory.getLogger(ApiFootball::class.java)
+
     override var requestDelay: Long? = null
-    
+
     private val requestThrottler = RequestThrottler()
 
-    private val client = HttpClient(OkHttp) {
-        val config =  HoconApplicationConfig(ConfigFactory.load())
+    private val client: HttpClient = clientOverride ?: HttpClient(OkHttp){
         val apiKey = config.propertyOrNull("ktor.api.apiKey")?.getString()
         install(HttpTimeout) {
         }
@@ -40,13 +46,26 @@ class ApiFootball : DataApi {
         install(DefaultRequest) {
             headers.append("X-RapidAPI-Key", apiKey ?: "")
             headers.append("X-RapidAPI-Host", "api-football-v1.p.rapidapi.com")
+            headers.append("Accept", ContentType.Application.Json.toString())
+        }
+        HttpResponseValidator {
+            validateResponse { response ->
+                response.headers["x-ratelimit-requests-remaining"]?.let {
+                    try {
+                        requestThrottler.requestsRemainingToday = it.toInt()
+                    } catch (e: Exception) {
+                        logger.warn("Failed to parse remaining requests header", e)
+                    }
+                }
+            }
         }
     }
 
-    // TODO: update request throttler with x-ratelimit-requests-remaining header
-
     override fun getFixtures(leagueId: Int): ApiFixtureList? {
-        if (!requestThrottler.canRequest) return null
+        if (!requestThrottler.canRequest) {
+            logger.error("Ran out of requests!")
+            return null
+        }
         return runBlocking {
             requestDelay?.let { delay(it) }
             return@runBlocking client.get<FixtureList> {
@@ -56,7 +75,10 @@ class ApiFootball : DataApi {
     }
 
     override fun getStats(fixtureId: Int): ApiFixtureStats? {
-        if (!requestThrottler.canRequest) return null
+        if (!requestThrottler.canRequest) {
+            logger.error("Ran out of requests!")
+            return null
+        }
         return runBlocking {
             requestDelay?.let { delay(it) }
             return@runBlocking client.get<FixtureStats> {
@@ -66,7 +88,10 @@ class ApiFootball : DataApi {
     }
 
     override fun getOdds(fixtureId: Int): ApiOdds? {
-        if (!requestThrottler.canRequest) return null
+        if (!requestThrottler.canRequest) {
+            logger.error("Ran out of requests!")
+            return null
+        }
         return runBlocking {
             requestDelay?.let { delay(it) }
             return@runBlocking client.get<Odds> {
@@ -76,7 +101,10 @@ class ApiFootball : DataApi {
     }
 
     override fun getEvents(fixtureId: Int): ApiFixtureEvents? {
-        if (!requestThrottler.canRequest) return null
+        if (!requestThrottler.canRequest) {
+            logger.error("Ran out of requests!")
+            return null
+        }
         return runBlocking {
             requestDelay?.let { delay(it) }
             return@runBlocking client.get<FixtureEvents> {

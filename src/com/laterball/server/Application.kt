@@ -4,33 +4,31 @@ import com.laterball.server.api.DataApi
 import com.laterball.server.model.LeagueId
 import com.laterball.server.repository.RatingsRepository
 import io.ktor.application.*
+import io.ktor.config.ApplicationConfig
 import io.ktor.routing.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.auth.*
 import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.html.respondHtml
 import io.ktor.locations.*
+import io.ktor.util.KtorExperimentalAPI
 import kotlinx.html.*
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.inject
 import org.koin.logger.slf4jLogger
+import org.slf4j.LoggerFactory
 import java.text.SimpleDateFormat
 import java.util.*
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@OptIn(KtorExperimentalAPI::class)
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
 
-    install(Authentication) {
-        basic("myBasicAuth") {
-            realm = "Ktor Server"
-            validate { if (it.name == "test" && it.password == "password") UserIdPrincipal(it.name) else null }
-        }
-    }
+    val logger = LoggerFactory.getLogger(Application::class.java)
 
     install(ContentNegotiation) {
         gson {
@@ -48,6 +46,7 @@ fun Application.module(testing: Boolean = false) {
     // Lazy inject HelloService
     val repo by inject<RatingsRepository>()
     val api by inject<DataApi>()
+    val config by inject<ApplicationConfig>()
 
     // https://ktor.io/servers/features/https-redirect.html#testing
     if (!testing) {
@@ -66,6 +65,7 @@ fun Application.module(testing: Boolean = false) {
     install(CORS) {
         method(HttpMethod.Options)
         method(HttpMethod.Get)
+//        host("laterball.com", schemes = listOf("https"))
         anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
 
@@ -77,7 +77,8 @@ fun Application.module(testing: Boolean = false) {
     routing {
         get("/ratings") {
             val ratings = repo.getRatingsForLeague(LeagueId.EPL)
-            val analyticsTag = System.getenv("LATERBALL_ANALYTICS_TAG")
+            logger.info("Returning ratings: ${ratings?.joinToString()}")
+            val analyticsTag = config.propertyOrNull("ktor.analytics.tag")?.getString() ?: ""
             call.respondHtml {
                 head {
                     styleLink("/static/laterball.css")
@@ -103,29 +104,53 @@ fun Application.module(testing: Boolean = false) {
                     }
                     br {}
                     br {}
-                    div(classes = "lb-container") {
-                        style = "max-width: 1200px"
-                        ratings?.let {
-                            ul(classes = "lb-ul lb-card-4") {
-                                ratings.forEachIndexed { index, rating ->
-                                    li(classes = "lb-bar lb-border lb-round-xlarge") {
-                                        a(classes = "lb-bar-item lb-medium lb-right subtitle", href = "") { +"Where to watch ↠?"  }
-                                        img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.homeLogo) {
-                                            style = "width:85px"
-                                        }
-                                        div(classes = "lb-bar-item") {
-                                            span(classes = "lb-large  block") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
-                                            span(classes = "block") { +"#${index + 1} match this week" }
-                                        }
-                                        img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.awayLogo) {
-                                            style = "width:85px"
+                    div(classes = "center") {
+                        style = "width: 100%; text-align:center"
+                        div(classes = "lb-container") {
+                            style = "max-width: 1200px"
+                            ratings?.let {
+                                ul(classes = "lb-ul lb-card-4 center") {
+                                    ratings.forEach { rating ->
+                                        li(classes = "lb-bar lb-border lb-round-xlarge") {
+                                            a(
+                                                    classes = "lb-bar-item lb-medium lb-right subtitle",
+                                                    href = "https://www.google.com/search?q=${rating.homeTeam}+vs+${rating.awayTeam}+streaming+on+demand",
+                                                    target = "_blank") {
+                                                +"Where to watch? ↠"
+                                            }
+                                            div(classes = "center") {
+                                                img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.homeLogo) {
+                                                    style = "width:85px"
+                                                }
+                                                div(classes = "lb-bar-item") {
+                                                    span(classes = "lb-xxlarge  match") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
+                                                }
+                                                img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.awayLogo) {
+                                                    style = "width:85px"
+                                                }
+                                            }
+                                            br {}
+                                            div {
+                                                for (i in 1..rating.rating.toInt()) {
+                                                    if (i == rating.rating.toInt() && i % 2 != 0) {
+                                                        img(src = "/static/half_star.svg") { style = "height:50px" }
+                                                    } else if (i % 2 == 0) {
+                                                        img(src = "/static/star.svg") { style = "height:50px" }
+                                                    }
+                                                }
+                                                for (i in (rating.rating.toInt() + 1)..10) {
+                                                    if (i % 2 == 0) {
+                                                        img(src = "/static/empty_star.svg") { style = "height:50px" }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                            } ?: h2(classes = "subtitle") {
+                                style = "width: 100%; text-align:center"
+                                +"No recent games, check back later!"
                             }
-                        } ?: h2(classes = "subtitle") {
-                            style = "width: 100%; text-align:center"
-                            +"No recent games, check back later!"
                         }
                     }
                     span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }

@@ -11,6 +11,7 @@ class DataApiMock : DataApi {
     var testStats: ApiFixtureStats? = null
     var testOdds: ApiOdds? = null
     var testEvents: ApiFixtureEvents? = null
+    override var requestDelay: Long? = null
 
     override fun getFixtures(leagueId: Int): ApiFixtureList? {
         return testFixtures

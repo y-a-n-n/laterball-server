@@ -40,15 +40,16 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
          GOALS_FACTOR * totalGoals +
          RED_FACTOR * totalReds.toFloat() +
          YELLOW_FACTOR * totalYellows.toFloat() +
-         COMEBACK_FACTOR * swingFactor
+         swingFactor
  return Rating(
   fixture.homeTeam.team_name,
   fixture.awayTeam.team_name,
   fixture.event_date,
   fixture.homeTeam.logo,
   fixture.awayTeam.logo,
-  rating.toInt(),
-  "${fixture.goalsHomeTeam} - ${fixture.goalsAwayTeam}"
+  rating.toFloat(),
+  "${fixture.goalsHomeTeam} - ${fixture.goalsAwayTeam}",
+  totalGoals
  )
 }
 

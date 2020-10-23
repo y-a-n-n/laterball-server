@@ -4,11 +4,13 @@ import com.laterball.server.alg.determineRating
 import com.laterball.server.api.model.Fixture
 import com.laterball.server.model.LeagueId
 import com.laterball.server.model.Rating
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-
+import kotlin.math.floor
+import kotlin.math.min
 
 class RatingsRepository(
     private val fixtureRepository: FixtureRepository,
@@ -17,6 +19,7 @@ class RatingsRepository(
     private val oddsRepository: OddsRepository
 ) {
 
+    private val logger = LoggerFactory.getLogger(RatingsRepository::class.java)
     private val ratingsMap = ConcurrentHashMap<Fixture, Rating>()
 
     fun getRatingsForLeague(leagueId: LeagueId): List<Rating>? {
@@ -29,16 +32,37 @@ class RatingsRepository(
                 it.status == STATUS_FINISHED && currentTime - Date.from(Instant.from(timeFormatter.parse(it.event_date))).time < 604_800_000
             }
 
-        // Remove old data from the map
-        ratingsMap.entries.removeIf { relevantFixtures?.contains(it.key) == false }
+        val removeList = ratingsMap.entries.filter {
+            relevantFixtures?.contains(it.key) == false
+        }.map { it.key }
 
-        return relevantFixtures?.mapNotNull {
+        // Remove old data from caches
+        removeList.forEach {
+            ratingsMap.remove(it)
+            statsRepository.removeFromCache(it)
+            eventsRepository.removeFromCache(it)
+            oddsRepository.removeFromCache(it)
+        }
+
+        val ratings = relevantFixtures?.mapNotNull {
             // Calculate the rating only if we don't already have it
             ratingsMap[it] ?: calculateRating(it)
         }?.sortedByDescending { it.rating }
+
+        if (!ratings.isNullOrEmpty()) normalize(ratings)
+
+        return ratings
+    }
+
+    private fun normalize(ratings: List<Rating>) {
+        val maxRating = ratings[0].rating
+        val maxStars = min(ratings[0].totalGoals * 2, 10).toFloat()
+        val starsFactor = maxStars / maxRating
+        ratings.forEach { it.rating = floor(it.rating * starsFactor).coerceAtLeast(1f) }
     }
 
     private fun calculateRating(fixture: Fixture): Rating? {
+        logger.info("Cache miss!")
         val stats = statsRepository.getData(fixture)
         val odds = oddsRepository.getData(fixture)
         val events = eventsRepository.getData(fixture)

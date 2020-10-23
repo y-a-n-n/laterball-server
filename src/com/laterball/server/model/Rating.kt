@@ -6,6 +6,7 @@ class Rating(
     val date: String,
     val homeLogo: String,
     val awayLogo: String,
-    val rating: Int,
-    val score: String
+    var rating: Float,
+    val score: String,
+    val totalGoals: Int
 )

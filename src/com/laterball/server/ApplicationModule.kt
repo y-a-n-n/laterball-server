@@ -3,11 +3,16 @@ package com.laterball.server
 import com.laterball.server.api.ApiFootball
 import com.laterball.server.api.DataApi
 import com.laterball.server.repository.*
+import com.typesafe.config.ConfigFactory
+import io.ktor.config.ApplicationConfig
+import io.ktor.config.HoconApplicationConfig
+import io.ktor.util.KtorExperimentalAPI
 import org.koin.dsl.module
-import org.koin.experimental.builder.singleBy
 
+@OptIn(KtorExperimentalAPI::class)
 val appModule = module(createdAtStart = true) {
-    singleBy<DataApi, ApiFootball>()
+    factory<ApplicationConfig> { HoconApplicationConfig(ConfigFactory.load()) }
+    factory<DataApi> { ApiFootball(get()) }
     single { FixtureRepository(get()) }
     single { EventsRepository(get()) }
     single { StatsRepository(get()) }

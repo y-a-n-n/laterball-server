@@ -11,6 +11,10 @@ abstract class DataRepository<T> {
         return cache[fixture] ?: fetchAndCache(fixture)
     }
 
+    fun removeFromCache(fixture: Fixture) {
+        cache.remove(fixture)
+    }
+
     private fun fetchAndCache(fixture: Fixture): T? {
         val result = fetch(fixture)
         result?.let { cache[fixture] = it }

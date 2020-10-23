@@ -7,15 +7,15 @@ class RequestThrottler(private val clock: Clock = SystemClock(), private val max
 
     private var lastRolloverDay = clock.dayOfYear
 
-    private var requestsToday = 0
+    var requestsRemainingToday = maxPerDay
 
     val canRequest: Boolean get() {
         return if (lastRolloverDay == clock.dayOfYear) {
-            requestsToday++
-            requestsToday < maxPerDay
+            requestsRemainingToday--
+            requestsRemainingToday > 0
         } else {
             lastRolloverDay = clock.dayOfYear
-            requestsToday = 1
+            requestsRemainingToday = maxPerDay - 1
             true
         }
     }
