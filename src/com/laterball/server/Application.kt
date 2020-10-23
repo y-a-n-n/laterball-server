@@ -1,5 +1,6 @@
 package com.laterball.server
 
+import com.laterball.server.api.DataApi
 import com.laterball.server.model.LeagueId
 import com.laterball.server.repository.RatingsRepository
 import io.ktor.application.*
@@ -52,6 +53,7 @@ fun Application.module(testing: Boolean = false) {
 
     // Lazy inject HelloService
     val repo by inject<RatingsRepository>()
+    val api by inject<DataApi>()
 
     // https://ktor.io/servers/features/https-redirect.html#testing
     if (!testing) {
@@ -72,6 +74,11 @@ fun Application.module(testing: Boolean = false) {
         method(HttpMethod.Get)
         anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
+
+    // Init data, slowly to not hit api request limits
+    api.requestDelay = 4000
+    repo.getRatingsForLeague(LeagueId.EPL)
+    api.requestDelay = null
 
     routing {
         get("/ratings") {

@@ -19,8 +19,8 @@ private const val COMEBACK_FACTOR = 20.0
 
 fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFixtureEvents): Rating {
  val totalGoals = fixture.goalsAwayTeam + fixture.goalsHomeTeam
- val totalReds = stats.RedCards.away + stats.RedCards.home
- val totalYellows = stats.YellowCards.away + stats.YellowCards.home
+ val totalReds = try { stats.RedCards.away.toInt() + stats.RedCards.home.toInt() } catch (e: Exception) { 0 }
+ val totalYellows = try { stats.YellowCards.away.toInt() + stats.YellowCards.home.toInt() } catch (e: Exception) { 0 }
  val homeWinValue = odd.values.find { it.value == "Home" }?.odd?.toFloat() ?: 0f
  val awayWinValue = odd.values.find { it.value == "Away" }?.odd?.toFloat() ?: 0f
  val isUpset = (homeWinValue - awayWinValue > UPSET_ODDS_MARGIN && fixture.goalsHomeTeam >= fixture.goalsAwayTeam) ||

@@ -4,8 +4,11 @@ import com.laterball.server.alg.determineRating
 import com.laterball.server.api.model.Fixture
 import com.laterball.server.model.LeagueId
 import com.laterball.server.model.Rating
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+
 
 class RatingsRepository(
     private val fixtureRepository: FixtureRepository,
@@ -18,10 +21,13 @@ class RatingsRepository(
 
     fun getRatingsForLeague(leagueId: LeagueId): List<Rating>? {
         val currentTime = System.currentTimeMillis()
-        // Get completed fixures in this league less that 1 week old
+        // Get completed fixtures in this league less that 1 week old
+        val timeFormatter = DateTimeFormatter.ISO_DATE_TIME
         val relevantFixtures = fixtureRepository.getFixturesForLeague(leagueId)
             ?.fixtures
-            ?.filter { it.status == STATUS_FINISHED && currentTime - Date(it.event_date).time < 604_800_000 }
+            ?.filter {
+                it.status == STATUS_FINISHED && currentTime - Date.from(Instant.from(timeFormatter.parse(it.event_date))).time < 604_800_000
+            }
 
         // Remove old data from the map
         ratingsMap.entries.removeIf { relevantFixtures?.contains(it.key) == false }

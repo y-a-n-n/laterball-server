@@ -6,6 +6,7 @@ import com.laterball.server.api.model.ApiFixtureStats
 import com.laterball.server.api.model.ApiOdds
 
 interface DataApi {
+    var requestDelay: Long?
     fun getFixtures(leagueId: Int): ApiFixtureList?
     fun getStats(fixtureId: Int): ApiFixtureStats?
     fun getOdds(fixtureId: Int): ApiOdds?
