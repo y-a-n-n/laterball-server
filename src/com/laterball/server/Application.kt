@@ -4,16 +4,10 @@ import com.laterball.server.api.DataApi
 import com.laterball.server.model.LeagueId
 import com.laterball.server.repository.RatingsRepository
 import io.ktor.application.*
-import io.ktor.response.*
-import io.ktor.client.*
-import io.ktor.client.features.*
-import io.ktor.client.features.json.*
-import io.ktor.client.features.logging.*
 import io.ktor.routing.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.auth.*
-import io.ktor.client.engine.jetty.Jetty
 import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.html.respondHtml
