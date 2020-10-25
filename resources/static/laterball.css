@@ -1,5 +1,4 @@
 
-/* W3.CSS 4.13 June 2019 by Jan Egil and Borge Refsnes */
 html{box-sizing:border-box}*,*:before,*:after{box-sizing:inherit}
 
 body {
@@ -9,9 +8,29 @@ body {
 	font-family: 'Turret Road', cursive;
 color: white;
 }
+.fade-in {
+   opacity: 0.8;
+  transition: 0.3s;
+}
+.fade-in:hover {opacity: 1}
 .link {
-font-family: 'Roboto Slab', serif;
+font-family: 'Turret Road', cursive;
 color: white;
+text-decoration: none;
+}
+.link:after {
+  background: none repeat scroll 0 0 transparent;
+  content: "";
+  display: block;
+  height: 2px;
+  left: 50%;ute;
+  background: #fff;
+  transition: width 0.3s ease 0s, left 0.3s ease 0s;
+  width: 0;
+}
+.link:hover:after {
+  width: 100%;
+  left: 0;
 }
 .block {
 font-family: 'Roboto Slab', serif;
@@ -30,7 +49,6 @@ color: white;
   display: flex;
   justify-content: center;
 }
-/* Extract from normalize.css by Nicolas Gallagher and Jonathan Neal git.io/normalize */
 html{-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}body{margin:0}
 article,aside,details,figcaption,figure,footer,header,main,menu,nav,section{display:block}summary{display:list-item}
 audio,canvas,progress,video{display:inline-block}progress{vertical-align:baseline}

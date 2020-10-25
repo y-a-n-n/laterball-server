@@ -70,14 +70,14 @@ fun Application.module(testing: Boolean = false) {
     }
 
     // Init data, slowly to not hit api request limits
-    api.requestDelay = 4000
+    api.requestDelay = 10000
     repo.getRatingsForLeague(LeagueId.EPL)
     api.requestDelay = null
 
     routing {
         get("/ratings") {
             val ratings = repo.getRatingsForLeague(LeagueId.EPL)
-            logger.info("Returning ratings: ${ratings?.joinToString()}")
+            logger.info("Returning ratings: ${ratings?.joinToString{ it.toString() }}")
             val analyticsTag = config.propertyOrNull("ktor.analytics.tag")?.getString() ?: ""
             call.respondHtml {
                 head {
@@ -100,7 +100,10 @@ fun Application.module(testing: Boolean = false) {
                         style = "width: 100%; text-align:center"
                         img(src = "/static/laterball_transparent.svg")
                         h2(classes = "subtitle") { +"The best football games of the week, ranked" }
-                        a(classes = "subtitle", href = "./static/about.html") { +"What is Laterball? ↠" }
+                        div(classes = "center") {
+                            style = "width:200px"
+                            a(classes = "link", href = "./static/about.html") { +"What is Laterball? ↠" }
+                        }
                     }
                     br {}
                     br {}
@@ -109,11 +112,11 @@ fun Application.module(testing: Boolean = false) {
                         div(classes = "lb-container") {
                             style = "max-width: 1200px"
                             ratings?.let {
-                                ul(classes = "lb-ul lb-card-4 center") {
+                                ul(classes = "lb-ul lb-card-4") {
                                     ratings.forEach { rating ->
-                                        li(classes = "lb-bar lb-border lb-round-xlarge") {
+                                        li(classes = "lb-bar lb-border lb-round-xlarge fade-in") {
                                             a(
-                                                    classes = "lb-bar-item lb-medium lb-right subtitle",
+                                                    classes = "lb-bar-item lb-medium lb-right subtitle link",
                                                     href = "https://www.google.com/search?q=${rating.homeTeam}+vs+${rating.awayTeam}+streaming+on+demand",
                                                     target = "_blank") {
                                                 +"Where to watch? ↠"
