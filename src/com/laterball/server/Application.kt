@@ -48,20 +48,6 @@ fun Application.module(testing: Boolean = false) {
     val api by inject<DataApi>()
     val config by inject<ApplicationConfig>()
 
-    // https://ktor.io/servers/features/https-redirect.html#testing
-    if (!testing) {
-//        install(HttpsRedirect) {
-//            // The port to redirect to. By default 443, the default HTTPS port.
-//            sslPort = 443
-//            // 301 Moved Permanently, or 302 Found redirect.
-//            permanentRedirect = true
-//        }
-//        install(HSTS) {
-//            includeSubDomains = true
-//        }
-
-    }
-
     install(CORS) {
         method(HttpMethod.Options)
         method(HttpMethod.Get)
@@ -74,27 +60,58 @@ fun Application.module(testing: Boolean = false) {
     repo.getRatingsForLeague(LeagueId.EPL)
     api.requestDelay = null
 
-    routing {
-        get("/ratings") {
-            val ratings = repo.getRatingsForLeague(LeagueId.EPL)
-            logger.info("Returning ratings: ${ratings?.joinToString{ it.toString() }}")
-            val analyticsTag = config.propertyOrNull("ktor.analytics.tag")?.getString() ?: ""
-            call.respondHtml {
-                head {
-                    styleLink("/static/laterball.css")
-                    link(href = "https://fonts.googleapis.com/css2?family=Roboto+Slab&family=Turret+Road:wght@800&display=swap", rel = "stylesheet")
-                    script(type = ScriptType.textJavaScript, src = "https://www.googletagmanager.com/gtag/js?id=$analyticsTag") {}
-                    script(type = ScriptType.textJavaScript) {
-                        unsafe {
-                            raw("""
+    val generateHeader = { html: HTML ->
+        val analyticsTag = config.propertyOrNull("ktor.analytics.tag")?.getString() ?: ""
+        html.head {
+            styleLink("/static/laterball.css")
+            link(href = "https://fonts.googleapis.com/css2?family=Roboto+Slab&family=Turret+Road:wght@800&display=swap", rel = "stylesheet")
+            script(type = ScriptType.textJavaScript, src = "https://www.googletagmanager.com/gtag/js?id=$analyticsTag") {}
+            script(type = ScriptType.textJavaScript) {
+                unsafe {
+                    raw("""
                                 window.dataLayer = window.dataLayer || [];
                                 function gtag(){dataLayer.push(arguments);}
                                 gtag('js', new Date());
                                 gtag('config', '$analyticsTag');
                             """)
+                }
+            }
+        }
+    }
+
+    routing {
+        get("/about") {
+            call.respondHtml {
+                generateHeader(this)
+                body {
+                    div {
+                        style = "width: 100%; text-align:center"
+                        img(src = "/static/laterball_transparent.svg")
+                        h2(classes = "subtitle") { +"What is Laterball?" }
+                        div(classes = "center") {
+                            style = "width:200px"
+                            a(classes = "link", href = "./") { +"Home ↠" }
+                        }
+                        h3(classes = "block center") {
+                            +"Love to watch football on demand? Laterball tells you which games are the best to watch this week without spoiling the score for you."
+                            br {  }
+                            br {  }
+                            +"Currently, Laterball lists the best English Premier League games of the week, ranked by watchability."
+                            br {  }
+                            br {  }
                         }
                     }
+                    span(classes = "subtitle center") { +"feedback: email hi at laterball dot com" }
+                    span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
                 }
+            }
+        }
+
+        get("/") {
+            val ratings = repo.getRatingsForLeague(LeagueId.EPL)
+            logger.info("Returning ratings: ${ratings?.joinToString{ it.toString() }}")
+            call.respondHtml {
+                generateHeader(this)
                 body {
                     div {
                         style = "width: 100%; text-align:center"
@@ -102,7 +119,7 @@ fun Application.module(testing: Boolean = false) {
                         h2(classes = "subtitle") { +"The best football games of the week, ranked" }
                         div(classes = "center") {
                             style = "width:200px"
-                            a(classes = "link", href = "./static/about.html") { +"What is Laterball? ↠" }
+                            a(classes = "link", href = "./about") { +"What is Laterball? ↠" }
                         }
                     }
                     br {}
