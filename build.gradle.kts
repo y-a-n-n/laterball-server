@@ -8,7 +8,9 @@ val koin_version: String by project
 
 plugins {
     application
+    war
     kotlin("jvm") version "1.4.10"
+    id("com.google.cloud.tools.appengine") version "2.2.0"
 }
 
 group = "com.laterball.server"
@@ -28,7 +30,8 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
-    implementation("ch.qos.logback:logback-classic:$logback_version")
+//    implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("com.google.cloud:google-cloud-logging-logback:0.118.3-alpha")
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-client-okhttp:$ktor_version")
@@ -37,6 +40,7 @@ dependencies {
     implementation("io.ktor:ktor-client-gson:$ktor_version")
     implementation("io.ktor:ktor-client-logging-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-core:$ktor_version")
+    implementation("io.ktor:ktor-server-servlet:$ktor_version")
     implementation("io.ktor:ktor-server-host-common:$ktor_version")
     implementation("io.ktor:ktor-auth:$ktor_version")
     implementation("io.ktor:ktor-gson:$ktor_version")
@@ -51,8 +55,22 @@ dependencies {
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktor_version")
 }
 
+appengine {
+    deploy {
+        projectId = "laterball"
+        version = "1"
+        stopPreviousVersion = true
+        promote = true
+    }
+}
+
+extra.apply{
+    set("gce_logback_version", "0.60.0-alpha")
+}
+
 kotlin.sourceSets["main"].kotlin.srcDirs("src")
 kotlin.sourceSets["test"].kotlin.srcDirs("test")
 
 sourceSets["main"].resources.srcDirs("resources")
 sourceSets["test"].resources.srcDirs("testresources")
+

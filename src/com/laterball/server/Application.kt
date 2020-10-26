@@ -51,8 +51,9 @@ fun Application.module(testing: Boolean = false) {
     install(CORS) {
         method(HttpMethod.Options)
         method(HttpMethod.Get)
-//        host("laterball.com", schemes = listOf("https"))
-        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
+        host("laterball.com", schemes = listOf("https"))
+        host("laterball.et.r.appspot.com", schemes = listOf("https"))
+//        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
 
     // Init data, slowly to not hit api request limits

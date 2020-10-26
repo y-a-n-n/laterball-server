@@ -61,7 +61,7 @@ class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null)
         }
     }
 
-    override fun getFixtures(leagueId: Int): ApiFixtureList? {
+    override fun getPreviousFixtures(leagueId: Int): ApiFixtureList? {
         if (!requestThrottler.canRequest) {
             logger.error("Ran out of requests!")
             return null
@@ -69,7 +69,20 @@ class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null)
         return runBlocking {
             requestDelay?.let { delay(it) }
             return@runBlocking client.get<FixtureList> {
-                url("$BASE_URL/fixtures/league/$leagueId/last/50")
+                url("$BASE_URL/fixtures/league/$leagueId/last/30")
+            }.api
+        }
+    }
+
+    override fun getNextFixtures(leagueId: Int): ApiFixtureList? {
+        if (!requestThrottler.canRequest) {
+            logger.error("Ran out of requests!")
+            return null
+        }
+        return runBlocking {
+            requestDelay?.let { delay(it) }
+            return@runBlocking client.get<FixtureList> {
+                url("$BASE_URL/fixtures/league/$leagueId/next/10")
             }.api
         }
     }

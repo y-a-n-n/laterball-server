@@ -13,7 +13,7 @@ class DataApiMock : DataApi {
     var testEvents: ApiFixtureEvents? = null
     override var requestDelay: Long? = null
 
-    override fun getFixtures(leagueId: Int): ApiFixtureList? {
+    override fun getPreviousFixtures(leagueId: Int): ApiFixtureList? {
         return testFixtures
     }
 
