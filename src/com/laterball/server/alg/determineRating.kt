@@ -1,9 +1,6 @@
 package com.laterball.server.alg
 
-import com.laterball.server.api.model.ApiFixtureEvents
-import com.laterball.server.api.model.Bet
-import com.laterball.server.api.model.Fixture
-import com.laterball.server.api.model.Statistics
+import com.laterball.server.api.model.*
 import com.laterball.server.model.Rating
 import kotlin.math.abs
 import kotlin.math.max
@@ -14,13 +11,17 @@ private const val UPSET_ODDS_MARGIN = 2.0
 private const val UPSET_FACTOR = 7.0f
 private const val GOALS_FACTOR = 50.0f
 private const val YELLOW_FACTOR = 5.0f
-private const val RED_FACTOR = 10.0f
+private const val SHOTS_FACTOR = 10.0f
+private const val PASSES_FACTOR = 2.0f
+private const val RED_FACTOR = 15.0f
 private const val COMEBACK_FACTOR = 20.0
 
 fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFixtureEvents): Rating {
  val totalGoals = fixture.goalsAwayTeam + fixture.goalsHomeTeam
- val totalReds = try { stats.RedCards.away.toInt() + stats.RedCards.home.toInt() } catch (e: Exception) { 0 }
- val totalYellows = try { stats.YellowCards.away.toInt() + stats.YellowCards.home.toInt() } catch (e: Exception) { 0 }
+ val totalReds = stats.RedCards.sumStat()
+ val totalYellows = stats.YellowCards.sumStat()
+ val totalShots = stats.TotalShots.sumStat()
+ val totalPasses = stats.PassesAccurate.sumStat()
  val homeWinValue = odd.values.find { it.value == "Home" }?.odd?.toFloat() ?: 0f
  val awayWinValue = odd.values.find { it.value == "Away" }?.odd?.toFloat() ?: 0f
  val isUpset = (homeWinValue - awayWinValue > UPSET_ODDS_MARGIN && fixture.goalsHomeTeam >= fixture.goalsAwayTeam) ||
@@ -40,7 +41,9 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
          GOALS_FACTOR * totalGoals +
          RED_FACTOR * totalReds.toFloat() +
          YELLOW_FACTOR * totalYellows.toFloat() +
-         swingFactor
+         swingFactor +
+         totalShots * SHOTS_FACTOR
+         totalPasses * PASSES_FACTOR
  return Rating(
   fixture.homeTeam.team_name,
   fixture.awayTeam.team_name,
@@ -51,6 +54,10 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
   "${fixture.goalsHomeTeam} - ${fixture.goalsAwayTeam}",
   totalGoals
  )
+}
+
+private fun HomeAwayStat.sumStat(): Int {
+ return try { home.toInt() + away.toInt() } catch (e: Exception) { 0 }
 }
 
 fun ApiFixtureEvents.leadInfo(homeTeamId: Int): Triple<Int, Int, Int> {
