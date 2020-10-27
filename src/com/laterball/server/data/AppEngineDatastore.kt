@@ -1,8 +1,6 @@
 package com.laterball.server.data
 
-import com.google.cloud.datastore.Datastore
-import com.google.cloud.datastore.DatastoreOptions
-import com.google.cloud.datastore.Entity
+import com.google.cloud.datastore.*
 import com.google.gson.Gson
 import com.laterball.server.api.model.*
 import com.laterball.server.model.LeagueId
@@ -20,7 +18,7 @@ class AppEngineDatastore : Database {
         private const val FIXTURES = "fixtures"
         private const val EVENTS = "events"
         private const val STATS = "stats"
-        private const val ODDS = "odss"
+        private const val ODDS = "odds"
     }
 
     override fun storeFixtures(fixtures: Map<LeagueId, ApiFixtureList>) {
@@ -29,7 +27,7 @@ class AppEngineDatastore : Database {
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(FIXTURES)
             val builder = Entity.newBuilder(taskKey)
             fixtures.entries.forEach {
-                builder.set(it.key.name, gson.toJson(it.value))
+                builder.set(it.key.name, StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
@@ -46,8 +44,10 @@ class AppEngineDatastore : Database {
             val data = datastore.get(taskKey)
             data.properties.keys.forEach { key ->
                 val leagueId = LeagueId.valueOf(key)
-                val list = gson.fromJson(data.getString(key), ApiFixtureList::class.java)
-                map[leagueId] = list
+                data.getString(key)?.let {
+                    val list = gson.fromJson(it, ApiFixtureList::class.java)
+                    map[leagueId] = list
+                }
             }
             map
         } catch (e: Exception) {
@@ -65,8 +65,10 @@ class AppEngineDatastore : Database {
             val data = datastore.get(taskKey)
             data.properties.keys.forEach { key ->
                 val fixture = gson.fromJson(key, Fixture::class.java)
-                val stat = gson.fromJson(data.getString(key), Statistics::class.java)
-                map[fixture] = stat
+                data.getString(key)?.let {
+                    val stat = gson.fromJson(it, Statistics::class.java)
+                    map[fixture] = stat
+                }
             }
             map
         } catch (e: Exception) {
@@ -83,8 +85,10 @@ class AppEngineDatastore : Database {
             val data = datastore.get(taskKey)
             data.properties.keys.forEach { key ->
                 val fixture = gson.fromJson(key, Fixture::class.java)
-                val events = gson.fromJson(data.getString(key), ApiFixtureEvents::class.java)
-                map[fixture] = events
+                data.getString(key)?.let {
+                    val events = gson.fromJson(it, ApiFixtureEvents::class.java)
+                    map[fixture] = events
+                }
             }
             map
         } catch (e: Exception) {
@@ -101,8 +105,10 @@ class AppEngineDatastore : Database {
             val data = datastore.get(taskKey)
             data.properties.keys.forEach { key ->
                 val fixture = gson.fromJson(key, Fixture::class.java)
-                val odds = gson.fromJson(data.getString(key), Bet::class.java)
-                map[fixture] = odds
+                data.getString(key)?.let {
+                    val odds = gson.fromJson(it, Bet::class.java)
+                    map[fixture] = odds
+                }
             }
             map
         } catch (e: Exception) {
@@ -117,7 +123,7 @@ class AppEngineDatastore : Database {
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(STATS)
             val builder = Entity.newBuilder(taskKey)
             stats.entries.forEach {
-                builder.set(gson.toJson(it.key), gson.toJson(it.value))
+                builder.set(gson.toJson(it.key), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
@@ -132,7 +138,7 @@ class AppEngineDatastore : Database {
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(EVENTS)
             val builder = Entity.newBuilder(taskKey)
             events.entries.forEach {
-                builder.set(gson.toJson(it.key), gson.toJson(it.value))
+                builder.set(gson.toJson(it.key), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
@@ -147,7 +153,7 @@ class AppEngineDatastore : Database {
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(ODDS)
             val builder = Entity.newBuilder(taskKey)
             odds.entries.forEach {
-                builder.set(gson.toJson(it.key), gson.toJson(it.value))
+                builder.set(gson.toJson(it.key), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
