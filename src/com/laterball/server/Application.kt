@@ -11,7 +11,6 @@ import io.ktor.http.content.*
 import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.html.respondHtml
-import io.ktor.locations.*
 import io.ktor.util.KtorExperimentalAPI
 import kotlinx.html.*
 import org.koin.ktor.ext.Koin
@@ -33,9 +32,6 @@ fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
         gson {
         }
-    }
-
-    install(Locations) {
     }
 
     install(Koin) {
@@ -179,11 +175,6 @@ fun Application.module(testing: Boolean = false) {
             }
         }
 
-        get("/about") {
-
-        }
-
-        // Static feature. Try to access `/static/ktor_logo.svg`
         static("/static") {
             resources("static")
         }
