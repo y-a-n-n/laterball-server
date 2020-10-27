@@ -1,0 +1,29 @@
+on:
+  push:
+    tags:
+      - '*'
+
+name: Release
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Initialize Google Cloud SDK
+        uses: zxyle/publish-gae-action@master
+        with:
+          service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: laterball
+
+      - name: Publish app to Google App Engine
+        env:
+          RAPID_API_KEY: ${{ secrets.RAPID_API_KEY }}
+          LATERBALL_ANALYTICS_TAG: ${{ secrets.LATERBALL_ANALYTICS_TAG }}
+        run: |
+          # This client-secret.json is converted by GCP_SA_KEY.
+          gcloud auth activate-service-account ${{ secrets.GCP_SA_EMAIL }} --key-file=client-secret.json
+          gcloud config set project laterball
+          chmod +x deploy.sh
+          ./deploy.sh

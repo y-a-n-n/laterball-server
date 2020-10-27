@@ -57,7 +57,7 @@ fun Application.module(testing: Boolean = false) {
     }
 
     // Init data, slowly to not hit api request limits
-    api.requestDelay = 10000
+    api.requestDelay = 15000
     repo.getRatingsForLeague(LeagueId.EPL)
     api.requestDelay = null
 
