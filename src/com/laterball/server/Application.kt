@@ -148,17 +148,18 @@ fun Application.module(testing: Boolean = false) {
                                             }
                                             br {}
                                             div {
+                                                var starsAdded = 0
                                                 for (i in 1..rating.rating.toInt()) {
                                                     if (i == rating.rating.toInt() && i % 2 != 0) {
                                                         img(src = "/static/half_star.svg") { style = "height:50px" }
+                                                        starsAdded++
                                                     } else if (i % 2 == 0) {
                                                         img(src = "/static/star.svg") { style = "height:50px" }
+                                                        starsAdded++
                                                     }
                                                 }
-                                                for (i in (rating.rating.toInt() + 1)..10) {
-                                                    if (i % 2 == 0) {
-                                                        img(src = "/static/empty_star.svg") { style = "height:50px" }
-                                                    }
+                                                for (i in (starsAdded..5)) {
+                                                    img(src = "/static/empty_star.svg") { style = "height:50px" }
                                                 }
                                             }
                                         }

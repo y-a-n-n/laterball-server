@@ -3,49 +3,63 @@ package com.laterball.server.repository
 import com.laterball.server.model.LeagueId
 import com.laterball.server.api.DataApi
 import com.laterball.server.api.model.ApiFixtureList
+import com.laterball.server.data.Database
+import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.HashMap
 
-class FixtureRepository(private val dataApi: DataApi, private val clock: Clock = SystemClock()) {
+class FixtureRepository(private val dataApi: DataApi, private val database: Database, private val clock: Clock = SystemClock()) {
 
-    private val fixtureCache: ConcurrentHashMap<Int, ApiFixtureList> = ConcurrentHashMap()
-    private val lastUpdatedMap: ConcurrentHashMap<Int, Long> = ConcurrentHashMap()
-    private val nextFixtureUpdateTime: HashMap<LeagueId, Long> = HashMap()
+    private val fixtureCache: ConcurrentHashMap<LeagueId, ApiFixtureList>
+    private val lastUpdatedMap = ConcurrentHashMap<LeagueId, Long>()
+    private val nextFixtureUpdateTime = ConcurrentHashMap<LeagueId, Long>()
+    private val logger = LoggerFactory.getLogger(FixtureRepository::class.java.name)
+
+    init {
+        val storedFixtures = database.getFixtures()
+        fixtureCache = ConcurrentHashMap(storedFixtures)
+
+        logger.info("Initialised with fixtureCache size ${fixtureCache.size}")
+    }
 
     fun getFixturesForLeague(leagueId: LeagueId): ApiFixtureList? {
-        val current = fixtureCache[leagueId.id]
-        return if (needsUpdate(leagueId)) {
+        val current = fixtureCache[leagueId]
+        if (needsUpdate(leagueId)) {
             try {
-                lastUpdatedMap[leagueId.id] = clock.time
+                lastUpdatedMap[leagueId] = clock.time
                 val updated = dataApi.getPreviousFixtures(leagueId.id)
                 val next = dataApi.getNextFixtures(leagueId.id)
                 next?.let {
                     val timeFormatter = DateTimeFormatter.ISO_DATE_TIME
-                    val nextUpdate = it.fixtures
-                        .map { Date.from(Instant.from(timeFormatter.parse(it.event_date))).time }
-                        .minOrNull()
+                    val nextUpdate = next.fixtures
+                        ?.map { Date.from(Instant.from(timeFormatter.parse(it.event_date))).time }
+                        ?.minOrNull()
                     if (nextUpdate != null) {
-                        nextFixtureUpdateTime[leagueId] = nextUpdate + 10800000L // 3 hours
+                        val value = nextUpdate + 10800000L // 3 hours
+                        nextFixtureUpdateTime[leagueId] = value
+                        logger.info("Next update time for $leagueId is $value")
                     } else {
                         nextFixtureUpdateTime.remove(leagueId)
                     }
                 }
-                updated?.let { fixtureCache[leagueId.id] = it }
-                updated
+
+                updated?.let {
+                    fixtureCache[leagueId] = it
+                }
+                database.storeFixtures(fixtureCache)
+                return updated ?: current
             } catch (e: Exception) {
-                null
+                return current
             }
-        } else {
-            current
         }
+        return current
     }
 
     private fun needsUpdate(leagueId: LeagueId): Boolean {
         val currentTime = clock.time
-        val lastUpdate = lastUpdatedMap[leagueId.id] ?: 0L
+        val lastUpdate = lastUpdatedMap[leagueId] ?: 0L
         val nextUpdate = nextFixtureUpdateTime[leagueId] ?: currentTime
         return (currentTime - lastUpdate > 86400000) || (currentTime > nextUpdate)
     }

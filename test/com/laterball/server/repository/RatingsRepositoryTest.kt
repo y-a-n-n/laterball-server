@@ -27,10 +27,12 @@ internal class RatingsRepositoryTest {
     private lateinit var clockMock: ClockMock
     private lateinit var client: HttpClient
     private lateinit var ratingsRepository: RatingsRepository
+    private lateinit var databaseMock: DatabaseMock
 
     @Before
     fun setUp() {
         clockMock = ClockMock()
+        databaseMock = DatabaseMock()
         val mockData = getResourceAsText("mockdata.txt").lines()
         var req = -1
 
@@ -55,10 +57,10 @@ internal class RatingsRepositoryTest {
             put("ktor.api.apiKey", "foobar")
         }
         dataApi = ApiFootball(config, client)
-        val fixtureRepository = FixtureRepository(dataApi, clockMock)
-        val statsRepository = StatsRepository(dataApi)
-        val eventsRepository = EventsRepository(dataApi)
-        val oddsRepository = OddsRepository(dataApi)
+        val fixtureRepository = FixtureRepository(dataApi, databaseMock, clockMock)
+        val statsRepository = StatsRepository(dataApi, databaseMock)
+        val eventsRepository = EventsRepository(dataApi, databaseMock)
+        val oddsRepository = OddsRepository(dataApi, databaseMock)
 
         ratingsRepository = RatingsRepository(fixtureRepository, statsRepository, eventsRepository, oddsRepository)
     }

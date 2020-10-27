@@ -30,8 +30,6 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation("io.ktor:ktor-server-netty:$ktor_version")
-//    implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("com.google.cloud:google-cloud-logging-logback:0.118.3-alpha")
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
     implementation("io.ktor:ktor-client-okhttp:$ktor_version")
@@ -50,9 +48,13 @@ dependencies {
     implementation("org.koin:koin-logger-slf4j:$koin_version")
     implementation("org.koin:koin-test:$koin_version")
     implementation("io.ktor:ktor-html-builder:$ktor_version")
+    implementation("com.google.cloud:google-cloud-logging-logback:0.118.3-alpha")
+    implementation("com.google.cloud:google-cloud-datastore:1.105.0")
+
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
     testImplementation("io.ktor:ktor-client-mock:$ktor_version")
     testImplementation("io.ktor:ktor-client-mock-jvm:$ktor_version")
+    testImplementation("ch.qos.logback:logback-classic:$logback_version")
 }
 
 appengine {

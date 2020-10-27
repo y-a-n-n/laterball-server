@@ -16,11 +16,12 @@ class RatingsRepository(
     private val fixtureRepository: FixtureRepository,
     private val statsRepository: StatsRepository,
     private val eventsRepository: EventsRepository,
-    private val oddsRepository: OddsRepository
+    private val oddsRepository: OddsRepository,
 ) {
 
     private val logger = LoggerFactory.getLogger(RatingsRepository::class.java)
     private val ratingsMap = ConcurrentHashMap<Fixture, Rating>()
+
 
     fun getRatingsForLeague(leagueId: LeagueId): List<Rating>? {
         val currentTime = System.currentTimeMillis()
@@ -44,9 +45,22 @@ class RatingsRepository(
             oddsRepository.removeFromCache(it)
         }
 
-        val ratings = relevantFixtures?.mapNotNull {
+        if (removeList.isNotEmpty()) {
+            statsRepository.syncDatabase()
+            eventsRepository.syncDatabase()
+            oddsRepository.syncDatabase()
+        }
+
+        val ratings = relevantFixtures?.mapNotNull { fixture ->
             // Calculate the rating only if we don't already have it
-            ratingsMap[it] ?: calculateRating(it)
+            val existing = ratingsMap[fixture]
+            if (existing != null) {
+                existing
+            } else {
+                val calculated = calculateRating(fixture)
+                calculated?.let { ratingsMap[fixture] = it }
+                calculated
+            }
         }?.sortedByDescending { it.rating }
 
         if (!ratings.isNullOrEmpty()) normalize(ratings)
@@ -75,5 +89,6 @@ class RatingsRepository(
 
     companion object {
         private const val STATUS_FINISHED = "Match Finished"
+        private const val KEY_RATINGS = "fixtures"
     }
 }
