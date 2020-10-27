@@ -8,6 +8,7 @@ import com.laterball.server.api.model.ApiOdds
 class DataApiMock : DataApi {
 
     var testFixtures: ApiFixtureList? = null
+    var testNextFixtures: ApiFixtureList? = null
     var testStats: ApiFixtureStats? = null
     var testOdds: ApiOdds? = null
     var testEvents: ApiFixtureEvents? = null
@@ -15,6 +16,10 @@ class DataApiMock : DataApi {
 
     override fun getPreviousFixtures(leagueId: Int): ApiFixtureList? {
         return testFixtures
+    }
+
+    override fun getNextFixtures(leagueId: Int): ApiFixtureList? {
+        return testNextFixtures
     }
 
     override fun getStats(fixtureId: Int): ApiFixtureStats? {

@@ -13,6 +13,7 @@ import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
 import io.ktor.config.ApplicationConfig
 import io.ktor.config.HoconApplicationConfig
+import io.ktor.config.MapApplicationConfig
 import io.ktor.http.ContentType
 import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
@@ -50,7 +51,10 @@ internal class RatingsRepositoryTest {
             }
 
         }
-        dataApi = ApiFootball(HoconApplicationConfig(ConfigFactory.load()), client)
+        val config = MapApplicationConfig().apply {
+            put("ktor.api.apiKey", "foobar")
+        }
+        dataApi = ApiFootball(config, client)
         val fixtureRepository = FixtureRepository(dataApi, clockMock)
         val statsRepository = StatsRepository(dataApi)
         val eventsRepository = EventsRepository(dataApi)
