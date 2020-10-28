@@ -158,7 +158,7 @@ fun Application.module(testing: Boolean = false) {
                                                         starsAdded++
                                                     }
                                                 }
-                                                for (i in (starsAdded..5)) {
+                                                for (i in (starsAdded..4)) {
                                                     img(src = "/static/empty_star.svg") { style = "height:50px" }
                                                 }
                                             }
