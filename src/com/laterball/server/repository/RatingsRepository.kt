@@ -70,7 +70,7 @@ class RatingsRepository(
 
     private fun normalize(ratings: List<Rating>) {
         val maxRating = ratings[0].rating
-        val maxStars = min(ratings[0].totalGoals * 2, 10).toFloat()
+        val maxStars = min(ratings[0].goalsStat * 2, 10f)
         val starsFactor = maxStars / maxRating
         ratings.forEach { it.rating = floor(it.rating * starsFactor).coerceAtLeast(1f) }
     }

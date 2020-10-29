@@ -55,6 +55,7 @@ fun Application.module(testing: Boolean = false) {
     // Init data, slowly to not hit api request limits
     api.requestDelay = 15000
     repo.getRatingsForLeague(LeagueId.EPL)
+    repo.getRatingsForLeague(LeagueId.CHAMPIONS_LEAGUE)
     api.requestDelay = null
 
     val generateHeader = { html: HTML ->
@@ -76,6 +77,85 @@ fun Application.module(testing: Boolean = false) {
         }
     }
 
+    val generateForLeague = { html: HTML, leagueId: LeagueId ->
+        val ratings = repo.getRatingsForLeague(leagueId)
+        logger.info("Returning ratings: ${ratings?.joinToString{ it.toString() }}")
+        generateHeader(html)
+        html.body {
+            div {
+                style = "width: 100%; text-align:center"
+                img(src = "/static/laterball_transparent.svg")
+                h2(classes = "subtitle") { +"The best football games of the week, ranked by watchability" }
+                div(classes = "center") {
+                    style = "width:200px"
+                    a(classes = "link", href = "./about") { +"What is Laterball? ↠" }
+                }
+                div(classes = "center") {
+                    style = "width:200px"
+                    LeagueId.values().forEach {
+                        a(classes = if (it == leagueId) "static" else "link", href = "./${it.path}") {
+                            style = "margin-left: 15px; margin-right: 15px;"
+                            +it.title
+                        }
+                    }
+                }
+            }
+            br {}
+            br {}
+            div(classes = "center") {
+                style = "width: 100%; text-align:center"
+                div(classes = "lb-container") {
+                    style = "max-width: 1200px"
+                    ratings?.let {
+                        ul(classes = "lb-ul lb-card-4") {
+                            ratings.forEach { rating ->
+                                li(classes = "lb-bar lb-border lb-round-xlarge fade-in") {
+                                    a(
+                                            classes = "lb-bar-item lb-medium lb-right subtitle link",
+                                            href = "https://www.google.com/search?q=${rating.homeTeam}+vs+${rating.awayTeam}+streaming+on+demand",
+                                            target = "_blank") {
+                                        +"Where to watch? ↠"
+                                    }
+                                    div(classes = "center") {
+                                        img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.homeLogo) {
+                                            style = "width:85px"
+                                        }
+                                        div(classes = "lb-bar-item") {
+                                            span(classes = "lb-xxlarge  match") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
+                                        }
+                                        img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.awayLogo) {
+                                            style = "width:85px"
+                                        }
+                                    }
+                                    br {}
+                                    div {
+                                        var starsAdded = 0
+                                        for (i in 1..rating.rating.toInt()) {
+                                            if (i == rating.rating.toInt() && i % 2 != 0) {
+                                                img(src = "/static/half_star.svg") { style = "height:50px" }
+                                                starsAdded++
+                                            } else if (i % 2 == 0) {
+                                                img(src = "/static/star.svg") { style = "height:50px" }
+                                                starsAdded++
+                                            }
+                                        }
+                                        for (i in (starsAdded..4)) {
+                                            img(src = "/static/empty_star.svg") { style = "height:50px" }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } ?: h2(classes = "subtitle") {
+                        style = "width: 100%; text-align:center"
+                        +"No recent games, check back later!"
+                    }
+                }
+            }
+            span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
+        }
+    }
+
     routing {
         get("/about") {
             call.respondHtml {
@@ -87,7 +167,7 @@ fun Application.module(testing: Boolean = false) {
                         h2(classes = "subtitle") { +"What is Laterball?" }
                         div(classes = "center") {
                             style = "width:200px"
-                            a(classes = "link", href = "./") { +"Home ↠" }
+                            a(classes = "link", href = "./") { +"↞ Home" }
                         }
                         h3(classes = "block center") {
                             +"Love to watch football on demand? Laterball tells you which games are the best to watch this week without spoiling the score for you."
@@ -105,74 +185,14 @@ fun Application.module(testing: Boolean = false) {
         }
 
         get("/") {
-            val ratings = repo.getRatingsForLeague(LeagueId.EPL)
-            logger.info("Returning ratings: ${ratings?.joinToString{ it.toString() }}")
             call.respondHtml {
-                generateHeader(this)
-                body {
-                    div {
-                        style = "width: 100%; text-align:center"
-                        img(src = "/static/laterball_transparent.svg")
-                        h2(classes = "subtitle") { +"The best football games of the week, ranked" }
-                        div(classes = "center") {
-                            style = "width:200px"
-                            a(classes = "link", href = "./about") { +"What is Laterball? ↠" }
-                        }
-                    }
-                    br {}
-                    br {}
-                    div(classes = "center") {
-                        style = "width: 100%; text-align:center"
-                        div(classes = "lb-container") {
-                            style = "max-width: 1200px"
-                            ratings?.let {
-                                ul(classes = "lb-ul lb-card-4") {
-                                    ratings.forEach { rating ->
-                                        li(classes = "lb-bar lb-border lb-round-xlarge fade-in") {
-                                            a(
-                                                    classes = "lb-bar-item lb-medium lb-right subtitle link",
-                                                    href = "https://www.google.com/search?q=${rating.homeTeam}+vs+${rating.awayTeam}+streaming+on+demand",
-                                                    target = "_blank") {
-                                                +"Where to watch? ↠"
-                                            }
-                                            div(classes = "center") {
-                                                img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.homeLogo) {
-                                                    style = "width:85px"
-                                                }
-                                                div(classes = "lb-bar-item") {
-                                                    span(classes = "lb-xxlarge  match") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
-                                                }
-                                                img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.awayLogo) {
-                                                    style = "width:85px"
-                                                }
-                                            }
-                                            br {}
-                                            div {
-                                                var starsAdded = 0
-                                                for (i in 1..rating.rating.toInt()) {
-                                                    if (i == rating.rating.toInt() && i % 2 != 0) {
-                                                        img(src = "/static/half_star.svg") { style = "height:50px" }
-                                                        starsAdded++
-                                                    } else if (i % 2 == 0) {
-                                                        img(src = "/static/star.svg") { style = "height:50px" }
-                                                        starsAdded++
-                                                    }
-                                                }
-                                                for (i in (starsAdded..4)) {
-                                                    img(src = "/static/empty_star.svg") { style = "height:50px" }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } ?: h2(classes = "subtitle") {
-                                style = "width: 100%; text-align:center"
-                                +"No recent games, check back later!"
-                            }
-                        }
-                    }
-                    span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
-                }
+                generateForLeague(this, LeagueId.EPL)
+            }
+        }
+
+        get("/${LeagueId.CHAMPIONS_LEAGUE.path}") {
+            call.respondHtml {
+                generateForLeague(this, LeagueId.CHAMPIONS_LEAGUE)
             }
         }
 

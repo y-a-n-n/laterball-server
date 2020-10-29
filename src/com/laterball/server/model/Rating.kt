@@ -8,5 +8,5 @@ class Rating(
     val awayLogo: String,
     var rating: Float,
     val score: String,
-    val totalGoals: Int
+    val goalsStat: Float
 )
