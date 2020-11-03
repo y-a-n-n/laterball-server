@@ -80,4 +80,12 @@ class DatabaseMock : Database {
             map["odds"]!![gson.toJson(it.key)] = gson.toJson(it.value)
         }
     }
+
+    override fun storeLastTweetTime(time: Long) {
+
+    }
+
+    override fun getLastTweetTime(): Long {
+        return 0
+    }
 }

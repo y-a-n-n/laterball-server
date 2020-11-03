@@ -4,6 +4,8 @@ import com.google.cloud.datastore.*
 import com.google.gson.Gson
 import com.laterball.server.api.model.*
 import com.laterball.server.model.LeagueId
+import com.laterball.server.repository.Clock
+import com.laterball.server.repository.SystemClock
 import org.slf4j.LoggerFactory
 
 class AppEngineDatastore : Database {
@@ -12,6 +14,7 @@ class AppEngineDatastore : Database {
 
     private val logger = LoggerFactory.getLogger(AppEngineDatastore::class.java)
     private val datastore: Datastore = DatastoreOptions.getDefaultInstance().service
+    private val clock: Clock = SystemClock()
 
     companion object {
         private const val KIND = "laterball"
@@ -19,6 +22,7 @@ class AppEngineDatastore : Database {
         private const val EVENTS = "events"
         private const val STATS = "stats"
         private const val ODDS = "odds"
+        private const val TWEET_TIME = "tweet_time"
     }
 
     override fun storeFixtures(fixtures: Map<LeagueId, ApiFixtureList>) {
@@ -159,6 +163,29 @@ class AppEngineDatastore : Database {
             datastore.put(task)
         } catch (e: Exception) {
             logger.error("Failed to store odds", e)
+        }
+    }
+
+    override fun storeLastTweetTime(time: Long) {
+        try {
+            logger.info("Storing last tweet time as $time")
+            val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEET_TIME)
+            val builder = Entity.newBuilder(taskKey)
+            builder.set(TWEET_TIME, time)
+            datastore.put(builder.build())
+        } catch (e: Exception) {
+            logger.error("Failed to store tweet time", e)
+        }
+
+    }
+
+    override fun getLastTweetTime(): Long {
+        return try {
+            val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEET_TIME)
+            datastore.get(taskKey).getLong(TWEET_TIME) ?: 0
+        } catch (e: Exception) {
+            logger.error("Failed to get last tweet time; assume now to prevent too many tweets", e)
+            clock.time
         }
     }
 }

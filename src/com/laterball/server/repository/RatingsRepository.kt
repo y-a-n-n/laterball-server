@@ -4,11 +4,16 @@ import com.laterball.server.alg.determineRating
 import com.laterball.server.api.model.Fixture
 import com.laterball.server.model.LeagueId
 import com.laterball.server.model.Rating
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.ArrayList
+import kotlin.collections.HashSet
 import kotlin.math.floor
 import kotlin.math.min
 
@@ -21,7 +26,15 @@ class RatingsRepository(
 
     private val logger = LoggerFactory.getLogger(RatingsRepository::class.java)
     private val ratingsMap = ConcurrentHashMap<Fixture, Rating>()
+    private val newRatingsListeners: MutableSet<NewRatingListener> = HashSet()
 
+    fun addListener(listener: NewRatingListener) {
+        newRatingsListeners.add(listener)
+    }
+
+    fun removeListener(listener: NewRatingListener) {
+        newRatingsListeners.remove(listener)
+    }
 
     fun getRatingsForLeague(leagueId: LeagueId): List<Rating>? {
         val currentTime = System.currentTimeMillis()
@@ -51,6 +64,8 @@ class RatingsRepository(
             oddsRepository.syncDatabase()
         }
 
+        val newRatings = ArrayList<Rating>()
+
         val ratings = relevantFixtures?.mapNotNull { fixture ->
             // Calculate the rating only if we don't already have it
             val existing = ratingsMap[fixture]
@@ -58,10 +73,15 @@ class RatingsRepository(
                 existing
             } else {
                 val calculated = calculateRating(fixture)
-                calculated?.let { ratingsMap[fixture] = it }
+                calculated?.let { rating ->
+                    ratingsMap[fixture] = rating
+                    newRatings.add(rating)
+                }
                 calculated
             }
         }?.sortedByDescending { it.rating }
+
+        newRatingsListeners.forEach { it.invoke(newRatings) }
 
         if (!ratings.isNullOrEmpty()) normalize(ratings)
 
@@ -91,3 +111,5 @@ class RatingsRepository(
         private const val STATUS_FINISHED = "Match Finished"
     }
 }
+
+typealias NewRatingListener = (List<Rating>) -> Unit

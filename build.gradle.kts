@@ -47,6 +47,7 @@ dependencies {
     implementation("io.ktor:ktor-html-builder:$ktor_version")
     implementation("com.google.cloud:google-cloud-logging-logback:0.118.3-alpha")
     implementation("com.google.cloud:google-cloud-datastore:1.105.0")
+    implementation("org.twitter4j", "twitter4j-core", "4.0.7")
 
     testImplementation("io.ktor:ktor-server-tests:$ktor_version")
     testImplementation("io.ktor:ktor-client-mock:$ktor_version")

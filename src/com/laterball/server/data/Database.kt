@@ -12,4 +12,6 @@ interface Database {
     fun storeStats(stats: Map<Fixture, Statistics>)
     fun storeEvents(events: Map<Fixture, ApiFixtureEvents>)
     fun storeOdds(odds: Map<Fixture, Bet>)
+    fun storeLastTweetTime(time: Long)
+    fun getLastTweetTime(): Long
 }
