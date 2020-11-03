@@ -10,6 +10,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v1
       - name: Publish app to Google App Engine
         env:
           RAPID_API_KEY: ${{ secrets.RAPID_API_KEY }}
@@ -21,7 +22,5 @@ jobs:
           gcloud auth activate-service-account ${{ secrets.GCP_SA_EMAIL }} --key-file=client-secret.json
           gcloud info
           gcloud config set project laterball
-          pwd
-          ls
           chmod +x deploy.sh
           ./deploy.sh
