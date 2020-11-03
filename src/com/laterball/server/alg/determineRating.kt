@@ -52,7 +52,7 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
   fixture.awayTeam.logo,
   rating.toFloat(),
   "${fixture.goalsHomeTeam} - ${fixture.goalsAwayTeam}",
-  totalGoals
+  totalGoals.toFloat()
  )
 }
 
