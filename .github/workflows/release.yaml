@@ -21,6 +21,7 @@ jobs:
           gcloud auth activate-service-account ${{ secrets.GCP_SA_EMAIL }} --key-file=client-secret.json
           gcloud info
           gcloud config set project laterball
+          pwd
           ls
           chmod +x deploy.sh
           ./deploy.sh
