@@ -2,17 +2,13 @@ package com.laterball.server.repository
 
 import com.laterball.server.api.ApiFootball
 import com.laterball.server.api.DataApi
-import com.laterball.server.com.laterball.server.repository.ClockMock
 import com.laterball.server.model.LeagueId
-import com.typesafe.config.ConfigFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.features.DefaultRequest
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.JsonFeature
-import io.ktor.config.ApplicationConfig
-import io.ktor.config.HoconApplicationConfig
 import io.ktor.config.MapApplicationConfig
 import io.ktor.http.ContentType
 import io.ktor.http.headersOf

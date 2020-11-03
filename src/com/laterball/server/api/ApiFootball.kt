@@ -1,7 +1,6 @@
 package com.laterball.server.api
 
 import com.laterball.server.api.model.*
-import com.typesafe.config.ConfigFactory
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.features.DefaultRequest

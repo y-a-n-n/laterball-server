@@ -2,7 +2,6 @@ package com.laterball.server.repository
 
 import com.laterball.server.api.DataApiMock
 import com.laterball.server.api.model.*
-import com.laterball.server.com.laterball.server.repository.ClockMock
 import com.laterball.server.model.LeagueId
 import org.junit.Before
 import org.junit.Test

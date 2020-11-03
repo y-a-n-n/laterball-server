@@ -11,7 +11,7 @@ class AppEngineDatastore : Database {
     private val gson = Gson()
 
     private val logger = LoggerFactory.getLogger(AppEngineDatastore::class.java)
-    var datastore: Datastore = DatastoreOptions.getDefaultInstance().service
+    private val datastore: Datastore = DatastoreOptions.getDefaultInstance().service
 
     companion object {
         private const val KIND = "laterball"

@@ -89,6 +89,5 @@ class RatingsRepository(
 
     companion object {
         private const val STATUS_FINISHED = "Match Finished"
-        private const val KEY_RATINGS = "fixtures"
     }
 }

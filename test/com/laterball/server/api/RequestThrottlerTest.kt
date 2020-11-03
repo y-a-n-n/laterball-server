@@ -1,6 +1,6 @@
 package com.laterball.server.api
 
-import com.laterball.server.com.laterball.server.repository.ClockMock
+import com.laterball.server.repository.ClockMock
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals

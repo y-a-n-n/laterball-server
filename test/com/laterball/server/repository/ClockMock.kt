@@ -1,6 +1,5 @@
-package com.laterball.server.com.laterball.server.repository
+package com.laterball.server.repository
 
-import com.laterball.server.repository.Clock
 import java.util.*
 
 class ClockMock : Clock {
