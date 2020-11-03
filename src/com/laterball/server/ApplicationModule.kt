@@ -14,7 +14,6 @@ import io.ktor.config.HoconApplicationConfig
 import io.ktor.util.KtorExperimentalAPI
 import org.koin.dsl.module
 import org.koin.experimental.builder.singleBy
-import twitter4j.TwitterFactory
 
 @OptIn(KtorExperimentalAPI::class)
 val appModule = module(createdAtStart = true) {
