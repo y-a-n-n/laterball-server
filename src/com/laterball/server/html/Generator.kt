@@ -142,7 +142,13 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
                 }
             }
             span(classes = "subtitle center") { +"feedback: email hi at laterball dot com" }
+            span(classes = "subtitle center") {
+                a(href = "https://twitter.com/laterball") {
+                    img(src = "/static/twitter.jpg") { style = "width: 50px; height: 50px"}
+                }
+            }
             span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
+            span(classes = "subtitle center") { +"Version 2.0.1" }
         }
     }
 }

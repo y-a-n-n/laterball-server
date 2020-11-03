@@ -182,7 +182,11 @@ class AppEngineDatastore : Database {
     override fun getLastTweetTime(): Long {
         return try {
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEET_TIME)
-            datastore.get(taskKey).getLong(TWEET_TIME) ?: 0
+            if (datastore.get(taskKey)?.contains(TWEET_TIME) == true) {
+                datastore.get(taskKey).getLong(TWEET_TIME) ?: 0
+            } else {
+                0
+            }
         } catch (e: Exception) {
             logger.error("Failed to get last tweet time; assume now to prevent too many tweets", e)
             clock.time
