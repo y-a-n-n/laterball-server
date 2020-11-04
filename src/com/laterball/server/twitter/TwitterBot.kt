@@ -25,7 +25,7 @@ class TwitterBot(
                 "\n\nTo see what else is worth watching this week, visit laterball.com",
         )
 
-        private const val INTERVAL = 3600000L // Don't tweet more than once per hour
+        private const val INTERVAL = 3600000L * 4 // Don't tweet more than once per four hours
     }
 
     private val logger = LoggerFactory.getLogger(TwitterBot::class.java)

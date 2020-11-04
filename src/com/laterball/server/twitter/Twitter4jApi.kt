@@ -2,6 +2,7 @@ package com.laterball.server.twitter
 
 import io.ktor.config.ApplicationConfig
 import org.slf4j.LoggerFactory
+import twitter4j.TwitterException
 import twitter4j.TwitterFactory
 import twitter4j.conf.ConfigurationBuilder
 
@@ -26,7 +27,7 @@ class Twitter4jApi(private val config: ApplicationConfig) : TwitterApi {
     override fun sendTweet(text: String) {
         try {
             twitter.updateStatus(text)
-        } catch (e: Exception) {
+        } catch (e: TwitterException) {
             logger.error("Failed to send tweet", e)
         }
     }

@@ -55,7 +55,7 @@ class TwitterBotTest {
         val rating2 = Rating("Fizz", "Buss", "", "", "", 8f, "", 1f)
         val rating3 = Rating("Foo2", "Bar2", "", "", "", 4f, "", 1f)
         for (i in 0..100) {
-            clockMock.time += 3600001L
+            clockMock.time += 3600001L * 4
             twitterBot.tweetForRatings(listOf(rating1, rating2, rating3))
             assertEquals(1, twitterApiMock.sent.size)
             assertTrue(twitterApiMock.sent[0].contains("Foo vs Bar"))
@@ -66,7 +66,7 @@ class TwitterBotTest {
     @Test
     fun dontTweetTooOften() {
 
-        clockMock.time += 3600001L
+        clockMock.time += 3600001L * 4
 
         val rating2 = Rating("Fizz", "Buss", "", "", "", 8f, "", 1f)
         val rating3 = Rating("Foo2", "Bar2", "", "", "", 4f, "", 1f)
@@ -80,7 +80,7 @@ class TwitterBotTest {
         assertEquals(1, twitterApiMock.sent.size)
         assertTrue(twitterApiMock.sent[0].contains("Fizz vs Buss"))
 
-        clockMock.time += 3600000L
+        clockMock.time += 3600001L * 4
 
         twitterBot.tweetForRatings(listOf(rating2, rating3))
         assertEquals(2, twitterApiMock.sent.size)
