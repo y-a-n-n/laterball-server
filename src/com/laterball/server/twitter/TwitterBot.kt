@@ -30,6 +30,8 @@ class TwitterBot(
 
     private val logger = LoggerFactory.getLogger(TwitterBot::class.java)
 
+    private var lastFixtureId = 0
+
     private var lastTweetTime = database.getLastTweetTime()
 
     init {
@@ -53,15 +55,16 @@ class TwitterBot(
 
     private fun sendTweet(rating: Rating) {
         val currentTime = clock.time
-        if (currentTime - lastTweetTime > INTERVAL) {
+        if (lastFixtureId != rating.fixtureId && currentTime - lastTweetTime > INTERVAL) {
             getStatus(rating)?.let {
                 logger.info("Tweeting: $it")
+                lastFixtureId = rating.fixtureId
                 lastTweetTime = currentTime
                 database.storeLastTweetTime(currentTime)
                 twitterApi.sendTweet(it)
             }
         } else {
-            logger.info("Not tweeting; too soon")
+            logger.info("Not tweeting; too soon or already tweeted this rating")
         }
     }
 

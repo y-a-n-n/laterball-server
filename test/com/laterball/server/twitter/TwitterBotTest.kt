@@ -51,10 +51,10 @@ class TwitterBotTest {
 
     @Test
     fun greatGame() {
-        val rating1 = Rating("Foo", "Bar", "", "", "", 10f, "", 1f)
-        val rating2 = Rating("Fizz", "Buss", "", "", "", 8f, "", 1f)
-        val rating3 = Rating("Foo2", "Bar2", "", "", "", 4f, "", 1f)
         for (i in 0..100) {
+            val rating1 = Rating(1 * (i + 1), "Foo", "Bar", "", "", "", 10f, "", 1f)
+            val rating2 = Rating(2 * (i + 1), "Fizz", "Buss", "", "", "", 8f, "", 1f)
+            val rating3 = Rating(3 * (i + 1), "Foo2", "Bar2", "", "", "", 4f, "", 1f)
             clockMock.time += 3600001L * 4
             twitterBot.tweetForRatings(listOf(rating1, rating2, rating3))
             assertEquals(1, twitterApiMock.sent.size)
@@ -68,22 +68,45 @@ class TwitterBotTest {
 
         clockMock.time += 3600001L * 4
 
-        val rating2 = Rating("Fizz", "Buss", "", "", "", 8f, "", 1f)
-        val rating3 = Rating("Foo2", "Bar2", "", "", "", 4f, "", 1f)
+        val rating2 = Rating(6,"Fizz", "Buss", "", "", "", 8f, "", 1f)
+        val rating3 = Rating(7, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
         twitterBot.tweetForRatings(listOf(rating2, rating3))
         assertEquals(1, twitterApiMock.sent.size)
         assertTrue(twitterApiMock.sent[0].contains("Fizz vs Buss"))
 
         clockMock.time += 30000
 
+        val rating4 = Rating(8,"Fizz", "Buss", "", "", "", 8f, "", 1f)
+        val rating5 = Rating(9, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
+
+        twitterBot.tweetForRatings(listOf(rating4, rating5))
+        assertEquals(1, twitterApiMock.sent.size)
+        assertTrue(twitterApiMock.sent[0].contains("Fizz vs Buss"))
+
+        clockMock.time += 3600001L * 4
+
+        val rating6 = Rating(6538,"Fizz", "Buss", "", "", "", 8f, "", 1f)
+        val rating7 = Rating(9333, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
+
+        twitterBot.tweetForRatings(listOf(rating6, rating7))
+        assertEquals(2, twitterApiMock.sent.size)
+        assertTrue(twitterApiMock.sent[1].contains("Fizz vs Buss"))
+    }
+
+    @Test
+    fun dontTweetSameTwice() {
+        clockMock.time += 3600001L * 4
+
+        val rating2 = Rating(6,"Fizz", "Buss", "", "", "", 8f, "", 1f)
+        val rating3 = Rating(7, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
         twitterBot.tweetForRatings(listOf(rating2, rating3))
         assertEquals(1, twitterApiMock.sent.size)
         assertTrue(twitterApiMock.sent[0].contains("Fizz vs Buss"))
 
         clockMock.time += 3600001L * 4
 
+        twitterApiMock.sent.clear()
         twitterBot.tweetForRatings(listOf(rating2, rating3))
-        assertEquals(2, twitterApiMock.sent.size)
-        assertTrue(twitterApiMock.sent[1].contains("Fizz vs Buss"))
+        assertEquals(0, twitterApiMock.sent.size)
     }
 }
