@@ -1,6 +1,7 @@
 package com.laterball.server.twitter
 
 import com.laterball.server.data.Database
+import com.laterball.server.model.LeagueId
 import com.laterball.server.model.Rating
 import com.laterball.server.model.TwitterData
 import com.laterball.server.repository.Clock
@@ -9,6 +10,7 @@ import com.laterball.server.repository.SystemClock
 import io.ktor.util.KtorExperimentalAPI
 import org.slf4j.LoggerFactory
 import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.max
 
 @KtorExperimentalAPI
@@ -32,24 +34,27 @@ class TwitterBot(
     private val logger = LoggerFactory.getLogger(TwitterBot::class.java)
 
 
-    private var lastFixtureId: Int
+    private var lastFixtureId: MutableList<Int>
 
     private var lastTweetTime: Long
 
     init {
-        ratingsRepository.addListener { ratings ->
-            tweetForRatings(ratings)
+        ratingsRepository.addListener { leagueId, ratings ->
+            tweetForRatings(leagueId, ratings)
         }
         val twitterData = database.getTwitterData()
-        lastFixtureId = twitterData.lastFixtureTweeted
+        lastFixtureId = ArrayList(twitterData.lastFixtureTweeted)
+        while (lastFixtureId.size < LeagueId.values().size) {
+            lastFixtureId.add(0)
+        }
         lastTweetTime = twitterData.lastTweetTime
     }
 
-    fun tweetForRatings(ratings: List<Rating>) {
+    fun tweetForRatings(leagueId: LeagueId, ratings: List<Rating>) {
         logger.info("Received ${ratings.size} new ratings")
         ratings.maxByOrNull { it.rating }?.let {
             logger.info("Top rating is ${it.rating}")
-            sendTweet(it)
+            sendTweet(leagueId, it)
         }
     }
 
@@ -58,13 +63,13 @@ class TwitterBot(
         return max(0, r.nextInt(size) - 1)
     }
 
-    private fun sendTweet(rating: Rating) {
+    private fun sendTweet(leagueId: LeagueId, rating: Rating) {
         val currentTime = clock.time
-        if (lastFixtureId != rating.fixtureId && currentTime - lastTweetTime > INTERVAL) {
+        if (!lastFixtureId.contains(rating.fixtureId) && currentTime - lastTweetTime > INTERVAL) {
             getStatus(rating)?.let {
                 logger.info("Tweeting: $it")
                 lastTweetTime = currentTime
-                lastFixtureId = rating.fixtureId
+                lastFixtureId[leagueId.ordinal] = rating.fixtureId
                 database.storeTwitterData(TwitterData(lastTweetTime, lastFixtureId))
                 twitterApi.sendTweet(it)
             }

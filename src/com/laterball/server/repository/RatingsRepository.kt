@@ -83,7 +83,7 @@ class RatingsRepository(
             }
         }?.sortedByDescending { it.rating }
 
-        newRatingsListeners.forEach { it.invoke(newRatings) }
+        newRatingsListeners.forEach { it.invoke(leagueId, newRatings) }
 
         if (!ratings.isNullOrEmpty()) normalize(ratings)
 
@@ -116,4 +116,4 @@ class RatingsRepository(
     }
 }
 
-typealias NewRatingListener = (List<Rating>) -> Unit
+typealias NewRatingListener = (LeagueId, List<Rating>) -> Unit

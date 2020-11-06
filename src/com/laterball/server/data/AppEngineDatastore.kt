@@ -44,7 +44,7 @@ class AppEngineDatastore : Database {
             val map = HashMap<LeagueId, ApiFixtureList>()
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(FIXTURES)
             val data = datastore.get(taskKey)
-            data.properties.keys.forEach { key ->
+            data?.properties?.keys?.forEach { key ->
                 val leagueId = LeagueId.valueOf(key)
                 data.getString(key)?.let {
                     val list = gson.fromJson(it, ApiFixtureList::class.java)
@@ -65,8 +65,8 @@ class AppEngineDatastore : Database {
             val map = HashMap<Int, Statistics>()
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(STATS)
             val data = datastore.get(taskKey)
-            data.properties.keys.forEach { key ->
-                data.getString(key)?.let {
+            data?.properties?.keys?.forEach { key ->
+                data?.getString(key)?.let {
                     val stat = gson.fromJson(it, Statistics::class.java)
                     map[key.toInt()] = stat
                 }
@@ -84,8 +84,8 @@ class AppEngineDatastore : Database {
             val map = HashMap<Int, ApiFixtureEvents>()
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(EVENTS)
             val data = datastore.get(taskKey)
-            data.properties.keys.forEach { key ->
-                data.getString(key)?.let {
+            data?.properties?.keys?.forEach { key ->
+                data?.getString(key)?.let {
                     val events = gson.fromJson(it, ApiFixtureEvents::class.java)
                     map[key.toInt()] = events
                 }
@@ -103,8 +103,8 @@ class AppEngineDatastore : Database {
             val map = HashMap<Int, Bet>()
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(ODDS)
             val data = datastore.get(taskKey)
-            data.properties.keys.forEach { key ->
-                data.getString(key)?.let {
+            data?.properties?.keys?.forEach { key ->
+                data?.getString(key)?.let {
                     val odds = gson.fromJson(it, Bet::class.java)
                     map[key.toInt()] = odds
                 }
@@ -179,7 +179,7 @@ class AppEngineDatastore : Database {
         return try {
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEETS)
             val data = datastore.get(taskKey)
-            data.getString("data")?.let {
+            data?.getString("data")?.let {
                 gson.fromJson(it, TwitterData::class.java)
             } ?: TwitterData()
         } catch (e: Exception) {

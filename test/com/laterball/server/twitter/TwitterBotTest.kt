@@ -2,6 +2,7 @@ package com.laterball.server.twitter
 
 import com.laterball.server.api.ApiFootball
 import com.laterball.server.api.DataApi
+import com.laterball.server.model.LeagueId
 import com.laterball.server.model.Rating
 import com.laterball.server.repository.*
 import io.ktor.client.HttpClient
@@ -56,7 +57,7 @@ class TwitterBotTest {
             val rating2 = Rating(2 * (i + 1), "Fizz", "Buss", "", "", "", 8f, "", 1f)
             val rating3 = Rating(3 * (i + 1), "Foo2", "Bar2", "", "", "", 4f, "", 1f)
             clockMock.time += 3600001L * 4
-            twitterBot.tweetForRatings(listOf(rating1, rating2, rating3))
+            twitterBot.tweetForRatings(LeagueId.CHAMPIONS_LEAGUE, listOf(rating1, rating2, rating3))
             assertEquals(1, twitterApiMock.sent.size)
             assertTrue(twitterApiMock.sent[0].contains("Foo vs Bar"))
             twitterApiMock.sent.clear()
@@ -70,7 +71,7 @@ class TwitterBotTest {
 
         val rating2 = Rating(6,"Fizz", "Buss", "", "", "", 8f, "", 1f)
         val rating3 = Rating(7, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
-        twitterBot.tweetForRatings(listOf(rating2, rating3))
+        twitterBot.tweetForRatings(LeagueId.CHAMPIONS_LEAGUE, listOf(rating2, rating3))
         assertEquals(1, twitterApiMock.sent.size)
         assertTrue(twitterApiMock.sent[0].contains("Fizz vs Buss"))
 
@@ -79,7 +80,7 @@ class TwitterBotTest {
         val rating4 = Rating(8,"Fizz", "Buss", "", "", "", 8f, "", 1f)
         val rating5 = Rating(9, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
 
-        twitterBot.tweetForRatings(listOf(rating4, rating5))
+        twitterBot.tweetForRatings(LeagueId.CHAMPIONS_LEAGUE, listOf(rating4, rating5))
         assertEquals(1, twitterApiMock.sent.size)
         assertTrue(twitterApiMock.sent[0].contains("Fizz vs Buss"))
 
@@ -88,7 +89,7 @@ class TwitterBotTest {
         val rating6 = Rating(6538,"Fizz", "Buss", "", "", "", 8f, "", 1f)
         val rating7 = Rating(9333, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
 
-        twitterBot.tweetForRatings(listOf(rating6, rating7))
+        twitterBot.tweetForRatings(LeagueId.CHAMPIONS_LEAGUE, listOf(rating6, rating7))
         assertEquals(2, twitterApiMock.sent.size)
         assertTrue(twitterApiMock.sent[1].contains("Fizz vs Buss"))
     }
@@ -99,14 +100,14 @@ class TwitterBotTest {
 
         val rating2 = Rating(6,"Fizz", "Buss", "", "", "", 8f, "", 1f)
         val rating3 = Rating(7, "Foo2", "Bar2", "", "", "", 4f, "", 1f)
-        twitterBot.tweetForRatings(listOf(rating2, rating3))
+        twitterBot.tweetForRatings(LeagueId.CHAMPIONS_LEAGUE, listOf(rating2, rating3))
         assertEquals(1, twitterApiMock.sent.size)
         assertTrue(twitterApiMock.sent[0].contains("Fizz vs Buss"))
 
         clockMock.time += 3600001L * 4
 
         twitterApiMock.sent.clear()
-        twitterBot.tweetForRatings(listOf(rating2, rating3))
+        twitterBot.tweetForRatings(LeagueId.CHAMPIONS_LEAGUE, listOf(rating2, rating3))
         assertEquals(0, twitterApiMock.sent.size)
     }
 }
