@@ -4,7 +4,7 @@ import com.laterball.server.repository.Clock
 import com.laterball.server.repository.SystemClock
 import org.slf4j.LoggerFactory
 
-class RequestThrottler(private val clock: Clock = SystemClock(), private val maxPerDay: Int = 100) {
+class RequestThrottler(private val clock: Clock = SystemClock(), private val maxPerDay: Int = 7000) {
 
     private val logger = LoggerFactory.getLogger(RequestThrottler::class.java)
 
