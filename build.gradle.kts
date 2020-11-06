@@ -7,7 +7,7 @@ plugins {
     application
     war
     kotlin("jvm") version "1.4.10"
-    id("com.google.cloud.tools.appengine") version "2.2.0"
+    id("com.google.cloud.tools.appengine") version "2.1.1"
 }
 
 group = "com.laterball.server"
