@@ -26,7 +26,7 @@ class RatingsRepository(
 ) {
 
     private val logger = LoggerFactory.getLogger(RatingsRepository::class.java)
-    private val ratingsMap = ConcurrentHashMap<Int, Rating>()
+    private val ratingsMap = ConcurrentHashMap<LeagueId, ConcurrentHashMap<Int, Rating>>()
     private val newRatingsListeners: MutableSet<NewRatingListener> = HashSet()
 
     fun addListener(listener: NewRatingListener) {
@@ -38,6 +38,7 @@ class RatingsRepository(
     }
 
     fun getRatingsForLeague(leagueId: LeagueId): List<Rating>? {
+        val leagueMap = ratingsMap[leagueId] ?: ConcurrentHashMap()
         val currentTime = clock.time
         // Get completed fixtures in this league less that 1 week old
         val timeFormatter = DateTimeFormatter.ISO_DATE_TIME
@@ -47,13 +48,13 @@ class RatingsRepository(
                 it.status == STATUS_FINISHED && currentTime - Date.from(Instant.from(timeFormatter.parse(it.event_date))).time < 604_800_000
             }
 
-        val removeList = ratingsMap.entries.filter { entry ->
+        val removeList = leagueMap.entries.filter { entry ->
             relevantFixtures?.find { entry.value.fixtureId == it.fixture_id } == null
         }.map { it.key }
 
         // Remove old data from caches
         removeList.forEach {
-            ratingsMap.remove(it)
+            leagueMap.remove(it)
             statsRepository.removeFromCache(it)
             eventsRepository.removeFromCache(it)
             oddsRepository.removeFromCache(it)
@@ -69,13 +70,13 @@ class RatingsRepository(
 
         val ratings = relevantFixtures?.mapNotNull { fixture ->
             // Calculate the rating only if we don't already have it
-            val existing = ratingsMap[fixture.fixture_id]
+            val existing = leagueMap[fixture.fixture_id]
             if (existing != null) {
                 existing
             } else {
                 val calculated = calculateRating(fixture)
                 calculated?.let { rating ->
-                    ratingsMap[fixture.fixture_id] = rating
+                    leagueMap[fixture.fixture_id] = rating
                     newRatings.add(rating)
                 }
                 calculated
@@ -85,6 +86,8 @@ class RatingsRepository(
         newRatingsListeners.forEach { it.invoke(newRatings) }
 
         if (!ratings.isNullOrEmpty()) normalize(ratings)
+
+        ratingsMap[leagueId] = leagueMap
 
         return ratings
     }

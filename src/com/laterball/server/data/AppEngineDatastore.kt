@@ -152,7 +152,7 @@ class AppEngineDatastore : Database {
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(ODDS)
             val builder = Entity.newBuilder(taskKey)
             odds.entries.forEach {
-                builder.set(it.key.hashCode().toString(), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
+                builder.set(it.key.toString(), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
