@@ -7,11 +7,11 @@ plugins {
     application
     war
     kotlin("jvm") version "1.4.10"
-    id("com.google.cloud.tools.appengine") version "2.1.1"
+    id("com.google.cloud.tools.appengine") version "2.2.0"
 }
 
 group = "com.laterball.server"
-version = "2.1.0"
+version = "2.1.2"
 
 application {
     mainClassName = "io.ktor.server.netty.EngineMain"

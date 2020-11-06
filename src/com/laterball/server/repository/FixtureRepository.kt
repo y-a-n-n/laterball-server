@@ -48,7 +48,7 @@ class FixtureRepository(private val dataApi: DataApi, private val database: Data
                     }
                 }
 
-                val valid = updated?.fixtures?.isNullOrEmpty() != true
+                val valid = updated?.fixtures?.size ?: 0 > 0
                 if (valid) fixtureCache[leagueId] = updated!!
                 database.storeFixtures(fixtureCache)
                 return if (valid) updated else current

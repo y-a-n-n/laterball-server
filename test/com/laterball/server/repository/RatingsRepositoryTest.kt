@@ -15,7 +15,8 @@ import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
 import org.junit.Before
 import org.junit.Test
-import kotlin.test.assertNotNull
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 internal class RatingsRepositoryTest {
 
@@ -64,8 +65,12 @@ internal class RatingsRepositoryTest {
     @Test
     fun testRatings() {
         clockMock.time = 1603065600000L
-        val ratings = ratingsRepository.getRatingsForLeague(LeagueId.EPL)
-        assertNotNull(ratingsRepository.getRatingsForLeague(LeagueId.EPL))
+        val ratings1 = ratingsRepository.getRatingsForLeague(LeagueId.EPL)
+        assertEquals(10, ratings1!!.size)
+        val ratings2 = ratingsRepository.getRatingsForLeague(LeagueId.CHAMPIONS_LEAGUE)
+        assertNull(ratings2)
+        val ratings3 = ratingsRepository.getRatingsForLeague(LeagueId.EPL)
+        assertEquals(10, ratings3!!.size)
     }
 
     private fun getResourceAsText(path: String): String {
