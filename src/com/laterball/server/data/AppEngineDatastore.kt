@@ -4,8 +4,7 @@ import com.google.cloud.datastore.*
 import com.google.gson.Gson
 import com.laterball.server.api.model.*
 import com.laterball.server.model.LeagueId
-import com.laterball.server.repository.Clock
-import com.laterball.server.repository.SystemClock
+import com.laterball.server.model.TwitterData
 import org.slf4j.LoggerFactory
 
 class AppEngineDatastore : Database {
@@ -14,7 +13,6 @@ class AppEngineDatastore : Database {
 
     private val logger = LoggerFactory.getLogger(AppEngineDatastore::class.java)
     private val datastore: Datastore = DatastoreOptions.getDefaultInstance().service
-    private val clock: Clock = SystemClock()
 
     companion object {
         private const val KIND = "laterball"
@@ -22,7 +20,7 @@ class AppEngineDatastore : Database {
         private const val EVENTS = "events"
         private const val STATS = "stats"
         private const val ODDS = "odds"
-        private const val TWEET_TIME = "tweet_time"
+        private const val TWEETS = "tweets"
     }
 
     override fun storeFixtures(fixtures: Map<LeagueId, ApiFixtureList>) {
@@ -61,17 +59,16 @@ class AppEngineDatastore : Database {
     }
 
 
-    override fun getStats(): Map<Fixture, Statistics> {
+    override fun getStats(): Map<Int, Statistics> {
         logger.info("Retrieving stats")
         return try {
-            val map = HashMap<Fixture, Statistics>()
+            val map = HashMap<Int, Statistics>()
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(STATS)
             val data = datastore.get(taskKey)
             data.properties.keys.forEach { key ->
-                val fixture = gson.fromJson(key, Fixture::class.java)
                 data.getString(key)?.let {
                     val stat = gson.fromJson(it, Statistics::class.java)
-                    map[fixture] = stat
+                    map[key.toInt()] = stat
                 }
             }
             map
@@ -81,17 +78,16 @@ class AppEngineDatastore : Database {
         }
     }
 
-    override fun getEvents(): Map<Fixture, ApiFixtureEvents> {
+    override fun getEvents(): Map<Int, ApiFixtureEvents> {
         logger.info("Retrieving events")
         return try {
-            val map = HashMap<Fixture, ApiFixtureEvents>()
+            val map = HashMap<Int, ApiFixtureEvents>()
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(EVENTS)
             val data = datastore.get(taskKey)
             data.properties.keys.forEach { key ->
-                val fixture = gson.fromJson(key, Fixture::class.java)
                 data.getString(key)?.let {
                     val events = gson.fromJson(it, ApiFixtureEvents::class.java)
-                    map[fixture] = events
+                    map[key.toInt()] = events
                 }
             }
             map
@@ -101,17 +97,16 @@ class AppEngineDatastore : Database {
         }
     }
 
-    override fun getOdds(): Map<Fixture, Bet> {
+    override fun getOdds(): Map<Int, Bet> {
         logger.info("Retrieving odds")
         return try {
-            val map = HashMap<Fixture, Bet>()
+            val map = HashMap<Int, Bet>()
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(ODDS)
             val data = datastore.get(taskKey)
             data.properties.keys.forEach { key ->
-                val fixture = gson.fromJson(key, Fixture::class.java)
                 data.getString(key)?.let {
                     val odds = gson.fromJson(it, Bet::class.java)
-                    map[fixture] = odds
+                    map[key.toInt()] = odds
                 }
             }
             map
@@ -121,13 +116,13 @@ class AppEngineDatastore : Database {
         }
     }
 
-    override fun storeStats(stats: Map<Fixture, Statistics>) {
+    override fun storeStats(stats: Map<Int, Statistics>) {
         try {
             logger.info("Storing ${stats.size} stats")
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(STATS)
             val builder = Entity.newBuilder(taskKey)
             stats.entries.forEach {
-                builder.set(gson.toJson(it.key), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
+                builder.set(it.key.toString(), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
@@ -136,13 +131,13 @@ class AppEngineDatastore : Database {
         }
     }
 
-    override fun storeEvents(events: Map<Fixture, ApiFixtureEvents>) {
+    override fun storeEvents(events: Map<Int, ApiFixtureEvents>) {
         try {
             logger.info("Storing ${events.size} events")
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(EVENTS)
             val builder = Entity.newBuilder(taskKey)
             events.entries.forEach {
-                builder.set(gson.toJson(it.key), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
+                builder.set(it.key.toString(), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
@@ -151,13 +146,13 @@ class AppEngineDatastore : Database {
         }
     }
 
-    override fun storeOdds(odds: Map<Fixture, Bet>) {
+    override fun storeOdds(odds: Map<Int, Bet>) {
         try {
             logger.info("Storing ${odds.size} odds")
             val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(ODDS)
             val builder = Entity.newBuilder(taskKey)
             odds.entries.forEach {
-                builder.set(gson.toJson(it.key), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
+                builder.set(it.key.toString(), StringValue.newBuilder(gson.toJson(it.value)).setExcludeFromIndexes(true).build())
             }
             val task = builder.build()
             datastore.put(task)
@@ -166,30 +161,32 @@ class AppEngineDatastore : Database {
         }
     }
 
-    override fun storeLastTweetTime(time: Long) {
+    override fun storeTwitterData(twitterData: TwitterData) {
         try {
-            logger.info("Storing last tweet time as $time")
-            val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEET_TIME)
+            logger.info("Storing $twitterData")
+            val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEETS)
             val builder = Entity.newBuilder(taskKey)
-            builder.set(TWEET_TIME, time)
-            datastore.put(builder.build())
+            builder.set("data", gson.toJson(twitterData))
+            val task = builder.build()
+            datastore.put(task)
         } catch (e: Exception) {
-            logger.error("Failed to store tweet time", e)
+            logger.error("Failed to store odds", e)
         }
-
     }
 
-    override fun getLastTweetTime(): Long {
+    override fun getTwitterData(): TwitterData {
+        logger.info("Retrieving twitter data")
         return try {
-            val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEET_TIME)
-            if (datastore.get(taskKey)?.contains(TWEET_TIME) == true) {
-                datastore.get(taskKey).getLong(TWEET_TIME) ?: 0
-            } else {
-                0
-            }
+            val taskKey = datastore.newKeyFactory().setKind(KIND).newKey(TWEETS)
+            val data = datastore.get(taskKey)
+            data.getString("data")?.let {
+                gson.fromJson(it, TwitterData::class.java)
+            } ?: TwitterData()
         } catch (e: Exception) {
-            logger.error("Failed to get last tweet time; assume now to prevent too many tweets", e)
-            clock.time
+            logger.error("Failed to retrieve twitter data", e)
+            TwitterData()
         }
     }
+
+
 }

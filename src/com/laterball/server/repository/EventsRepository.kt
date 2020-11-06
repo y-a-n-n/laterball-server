@@ -10,7 +10,7 @@ class EventsRepository(private val dataApi: DataApi, private val database: Datab
         return dataApi.getEvents(fixture.fixture_id)
     }
 
-    override val storedData: Map<Fixture, ApiFixtureEvents>?
+    override val storedData: Map<Int, ApiFixtureEvents>?
         get() = database.getEvents()
 
     override fun syncDatabase() {

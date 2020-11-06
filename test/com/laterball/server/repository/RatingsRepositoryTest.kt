@@ -58,11 +58,12 @@ internal class RatingsRepositoryTest {
         val eventsRepository = EventsRepository(dataApi, databaseMock)
         val oddsRepository = OddsRepository(dataApi, databaseMock)
 
-        ratingsRepository = RatingsRepository(fixtureRepository, statsRepository, eventsRepository, oddsRepository)
+        ratingsRepository = RatingsRepository(fixtureRepository, statsRepository, eventsRepository, oddsRepository, clockMock)
     }
 
     @Test
     fun testRatings() {
+        clockMock.time = 1603065600000L
         val ratings = ratingsRepository.getRatingsForLeague(LeagueId.EPL)
         assertNotNull(ratingsRepository.getRatingsForLeague(LeagueId.EPL))
     }
