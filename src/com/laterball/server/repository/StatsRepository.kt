@@ -10,7 +10,7 @@ class StatsRepository(private val dataApi: DataApi, private val database: Databa
         return dataApi.getStats(fixture.fixture_id)?.statistics
     }
 
-    override val storedData: Map<Fixture, Statistics>?
+    override val storedData: Map<Int, Statistics>?
         get() = database.getStats()
 
     override fun syncDatabase() {

@@ -17,7 +17,7 @@ class OddsRepository(private val dataApi: DataApi, private val database: Databas
         private const val WINNER_LABEL = 1
     }
 
-    override val storedData: Map<Fixture, Bet>?
+    override val storedData: Map<Int, Bet>?
         get() = database.getOdds()
 
     override fun syncDatabase() {

@@ -26,6 +26,7 @@ class FixtureRepository(private val dataApi: DataApi, private val database: Data
 
     fun getFixturesForLeague(leagueId: LeagueId): ApiFixtureList? {
         val current = fixtureCache[leagueId]
+        logger.info("Fixture cache currently containts ${fixtureCache.size} fixtures")
         if (needsUpdate(leagueId)) {
             try {
                 lastUpdatedMap[leagueId] = clock.time
@@ -45,11 +46,10 @@ class FixtureRepository(private val dataApi: DataApi, private val database: Data
                     }
                 }
 
-                updated?.let {
-                    fixtureCache[leagueId] = it
-                }
+                val valid = updated?.fixtures?.isNullOrEmpty() != true
+                if (valid) fixtureCache[leagueId] = updated!!
                 database.storeFixtures(fixtureCache)
-                return updated ?: current
+                return if (valid) updated else current
             } catch (e: Exception) {
                 return current
             }

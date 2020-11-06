@@ -2,6 +2,7 @@ package com.laterball.server.twitter
 
 import com.laterball.server.data.Database
 import com.laterball.server.model.Rating
+import com.laterball.server.model.TwitterData
 import com.laterball.server.repository.Clock
 import com.laterball.server.repository.RatingsRepository
 import com.laterball.server.repository.SystemClock
@@ -30,14 +31,18 @@ class TwitterBot(
 
     private val logger = LoggerFactory.getLogger(TwitterBot::class.java)
 
-    private var lastFixtureId = 0
 
-    private var lastTweetTime = database.getLastTweetTime()
+    private var lastFixtureId: Int
+
+    private var lastTweetTime: Long
 
     init {
         ratingsRepository.addListener { ratings ->
             tweetForRatings(ratings)
         }
+        val twitterData = database.getTwitterData()
+        lastFixtureId = twitterData.lastFixtureTweeted
+        lastTweetTime = twitterData.lastTweetTime
     }
 
     fun tweetForRatings(ratings: List<Rating>) {
@@ -58,9 +63,9 @@ class TwitterBot(
         if (lastFixtureId != rating.fixtureId && currentTime - lastTweetTime > INTERVAL) {
             getStatus(rating)?.let {
                 logger.info("Tweeting: $it")
-                lastFixtureId = rating.fixtureId
                 lastTweetTime = currentTime
-                database.storeLastTweetTime(currentTime)
+                lastFixtureId = rating.fixtureId
+                database.storeTwitterData(TwitterData(lastTweetTime, lastFixtureId))
                 twitterApi.sendTweet(it)
             }
         } else {

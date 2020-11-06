@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import com.laterball.server.api.model.*
 import com.laterball.server.data.Database
 import com.laterball.server.model.LeagueId
+import com.laterball.server.model.TwitterData
 
 class DatabaseMock : Database {
 
@@ -33,59 +34,56 @@ class DatabaseMock : Database {
         return decoded
     }
 
-    override fun getStats(): Map<Fixture, Statistics> {
-        val decoded = HashMap<Fixture, Statistics>()
+    override fun getStats(): Map<Int, Statistics> {
+        val decoded = HashMap<Int, Statistics>()
         map["stats"]?.entries?.forEach { entry ->
-            val fixture = gson.fromJson(entry.key, Fixture::class.java)
             val stat = gson.fromJson(entry.value, Statistics::class.java)
-            decoded[fixture] = stat
+            decoded[entry.key.toInt()] = stat
         }
         return decoded
     }
 
-    override fun getEvents(): Map<Fixture, ApiFixtureEvents> {
-        val decoded = HashMap<Fixture, ApiFixtureEvents>()
+    override fun getEvents(): Map<Int, ApiFixtureEvents> {
+        val decoded = HashMap<Int, ApiFixtureEvents>()
         map["events"]?.entries?.forEach { entry ->
-            val fixture = gson.fromJson(entry.key, Fixture::class.java)
             val stat = gson.fromJson(entry.value, ApiFixtureEvents::class.java)
-            decoded[fixture] = stat
+            decoded[entry.key.toInt()] = stat
         }
         return decoded
     }
 
-    override fun getOdds(): Map<Fixture, Bet> {
-        val decoded = HashMap<Fixture, Bet>()
+    override fun getOdds(): Map<Int, Bet> {
+        val decoded = HashMap<Int, Bet>()
         map["odds"]?.entries?.forEach { entry ->
-            val fixture = gson.fromJson(entry.key, Fixture::class.java)
             val stat = gson.fromJson(entry.value, Bet::class.java)
-            decoded[fixture] = stat
+            decoded[entry.key.toInt()] = stat
         }
         return decoded
     }
 
-    override fun storeStats(stats: Map<Fixture, Statistics>) {
+    override fun storeStats(stats: Map<Int, Statistics>) {
         stats.forEach {
-            map["stats"]!![gson.toJson(it.key)] = gson.toJson(it.value)
+            map["stats"]!![it.key.toString()] = gson.toJson(it.value)
         }
     }
 
-    override fun storeEvents(events: Map<Fixture, ApiFixtureEvents>) {
+    override fun storeEvents(events: Map<Int, ApiFixtureEvents>) {
         events.forEach {
-            map["events"]!![gson.toJson(it.key)] = gson.toJson(it.value)
+            map["events"]!![it.key.toString()] = gson.toJson(it.value)
         }
     }
 
-    override fun storeOdds(odds: Map<Fixture, Bet>) {
+    override fun storeOdds(odds: Map<Int, Bet>) {
         odds.forEach {
-            map["odds"]!![gson.toJson(it.key)] = gson.toJson(it.value)
+            map["odds"]!![it.key.toString()] = gson.toJson(it.value)
         }
     }
 
-    override fun storeLastTweetTime(time: Long) {
+    override fun storeTwitterData(twitterData: TwitterData) {
 
     }
 
-    override fun getLastTweetTime(): Long {
-        return 0
+    override fun getTwitterData(): TwitterData {
+        return TwitterData()
     }
 }

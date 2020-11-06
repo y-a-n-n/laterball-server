@@ -4,7 +4,7 @@ import com.laterball.server.repository.Clock
 import com.laterball.server.repository.SystemClock
 import org.slf4j.LoggerFactory
 
-class RequestThrottler(private val clock: Clock = SystemClock(), private val maxPerDay: Int = 100) {
+class RequestThrottler(private val clock: Clock = SystemClock(), private val maxPerDay: Int = 7000) {
 
     private val logger = LoggerFactory.getLogger(RequestThrottler::class.java)
 
@@ -16,6 +16,7 @@ class RequestThrottler(private val clock: Clock = SystemClock(), private val max
         return if (lastRolloverDay == clock.dayOfYear) {
             requestsRemainingToday--
             if (requestsRemainingToday <= 0) logger.warn("Today: ${clock.dayOfYear}, rollover: $lastRolloverDay")
+            if (requestsRemainingToday % 20 == 0) logger.info("$requestsRemainingToday requests remain")
             requestsRemainingToday > 0
         } else {
             lastRolloverDay = clock.dayOfYear

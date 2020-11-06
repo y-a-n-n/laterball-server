@@ -66,10 +66,15 @@ class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null)
             return null
         }
         return runBlocking {
-            requestDelay?.let { delay(it) }
-            return@runBlocking client.get<FixtureList> {
-                url("$BASE_URL/fixtures/league/$leagueId/last/30")
-            }.api
+            return@runBlocking kotlin.runCatching {
+                requestDelay?.let { delay(it) }
+                return@runCatching client.get<FixtureList> {
+                    url("$BASE_URL/fixtures/league/$leagueId/last/30")
+                }.api
+            }.getOrElse {
+                logger.error("Failed to fetch odds", it)
+                null
+            }
         }
     }
 
@@ -79,10 +84,15 @@ class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null)
             return null
         }
         return runBlocking {
-            requestDelay?.let { delay(it) }
-            return@runBlocking client.get<FixtureList> {
-                url("$BASE_URL/fixtures/league/$leagueId/next/10")
-            }.api
+            return@runBlocking kotlin.runCatching {
+                requestDelay?.let { delay(it) }
+                return@runCatching client.get<FixtureList> {
+                    url("$BASE_URL/fixtures/league/$leagueId/next/10")
+                }.api
+            }.getOrElse {
+                logger.error("Failed to fetch odds", it)
+                null
+            }
         }
     }
 
@@ -92,10 +102,15 @@ class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null)
             return null
         }
         return runBlocking {
-            requestDelay?.let { delay(it) }
-            return@runBlocking client.get<FixtureStats> {
-                url("$BASE_URL/statistics/fixture/$fixtureId")
-            }.api
+            return@runBlocking kotlin.runCatching {
+                requestDelay?.let { delay(it) }
+                return@runCatching client.get<FixtureStats> {
+                    url("$BASE_URL/statistics/fixture/$fixtureId")
+                }.api
+            }.getOrElse {
+                logger.error("Failed to fetch odds", it)
+                null
+            }
         }
     }
 
@@ -105,10 +120,15 @@ class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null)
             return null
         }
         return runBlocking {
-            requestDelay?.let { delay(it) }
-            return@runBlocking client.get<Odds> {
-                url("$BASE_URL/odds/fixture/$fixtureId")
-            }.api
+                return@runBlocking kotlin.runCatching {
+                requestDelay?.let { delay(it) }
+                return@runCatching client.get<Odds> {
+                    url("$BASE_URL/odds/fixture/$fixtureId")
+                }.api
+            }.getOrElse {
+                logger.error("Failed to fetch odds", it)
+                null
+            }
         }
     }
 
@@ -118,10 +138,15 @@ class ApiFootball(config: ApplicationConfig, clientOverride: HttpClient? = null)
             return null
         }
         return runBlocking {
-            requestDelay?.let { delay(it) }
-            return@runBlocking client.get<FixtureEvents> {
-                url("$BASE_URL/events/$fixtureId")
-            }.api
+            return@runBlocking kotlin.runCatching {
+                requestDelay?.let { delay(it) }
+                return@runCatching client.get<FixtureEvents> {
+                    url("$BASE_URL/events/$fixtureId")
+                }.api
+            }.getOrElse {
+                logger.error("Failed to fetch events", it)
+                null
+            }
         }
     }
 }
