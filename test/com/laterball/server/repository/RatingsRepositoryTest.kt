@@ -68,7 +68,7 @@ internal class RatingsRepositoryTest {
         val ratings1 = ratingsRepository.getRatingsForLeague(LeagueId.EPL)
         assertEquals(10, ratings1!!.size)
         val ratings2 = ratingsRepository.getRatingsForLeague(LeagueId.CHAMPIONS_LEAGUE)
-        assertNull(ratings2)
+        assertEquals(0, ratings2!!.size)
         val ratings3 = ratingsRepository.getRatingsForLeague(LeagueId.EPL)
         assertEquals(10, ratings3!!.size)
     }

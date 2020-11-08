@@ -66,7 +66,7 @@ class RatingsRepository(
             oddsRepository.syncDatabase()
         }
 
-        val newRatings = ArrayList<Rating>()
+        val newRatings = ArrayList<Int>()
 
         val ratings = relevantFixtures?.mapNotNull { fixture ->
             // Calculate the rating only if we don't already have it
@@ -77,26 +77,45 @@ class RatingsRepository(
                 val calculated = calculateRating(fixture)
                 calculated?.let { rating ->
                     leagueMap[fixture.fixture_id] = rating
-                    newRatings.add(rating)
+                    newRatings.add(rating.fixtureId)
                 }
                 calculated
             }
         }?.sortedByDescending { it.rating }
 
-        newRatingsListeners.forEach { it.invoke(leagueId, newRatings) }
-
-        if (!ratings.isNullOrEmpty()) normalize(ratings)
-
+        // Cache before normalisation
         ratingsMap[leagueId] = leagueMap
 
-        return ratings
+        // Normalise the ratings
+        val normed = if (!ratings.isNullOrEmpty()) normalize(ratings) else emptyList()
+
+        // Pick out the new ones
+        val normedNew = normed.filter { rating -> newRatings.contains(rating.fixtureId) }
+
+        // Inform listeners what's new
+        newRatingsListeners.forEach { it.invoke(leagueId, normedNew) }
+
+        return normed
     }
 
-    private fun normalize(ratings: List<Rating>) {
+    private fun normalize(ratings: List<Rating>): List<Rating> {
         val maxRating = ratings[0].rating
         val maxStars = min(ratings[0].goalsStat * 2, 10f)
         val starsFactor = maxStars / maxRating
-        ratings.forEach { it.rating = floor(it.rating * starsFactor).coerceAtLeast(1f) }
+        return ratings.map {
+            val normRating = floor(it.rating * starsFactor).coerceAtLeast(1f)
+            Rating(
+                it.fixtureId,
+                it.homeTeam,
+                it.awayTeam,
+                it.date,
+                it.homeLogo,
+                it.awayLogo,
+                normRating,
+                it.score,
+                it.goalsStat
+            )
+        }
     }
 
     private fun calculateRating(fixture: Fixture): Rating? {
