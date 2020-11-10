@@ -21,6 +21,8 @@ class TwitterBot(
         private val clock: Clock = SystemClock()
 ) {
 
+    var enabled = false
+
     companion object {
         private val PROMO = listOf(
                 "\n\nSee all this week's watchability ratings at laterball.com",
@@ -53,8 +55,12 @@ class TwitterBot(
     fun tweetForRatings(leagueId: LeagueId, ratings: List<Rating>) {
         logger.info("Received ${ratings.size} new ratings")
         ratings.maxByOrNull { it.rating }?.let {
-            logger.info("Top rating is ${it.rating}")
-            sendTweet(leagueId, it)
+            if (enabled) {
+                logger.info("Top rating is ${it.rating}")
+                sendTweet(leagueId, it)
+            } else {
+                logger.info("Not tweeting--not enabled yet")
+            }
         }
     }
 
