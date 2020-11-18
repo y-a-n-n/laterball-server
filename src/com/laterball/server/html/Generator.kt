@@ -14,7 +14,7 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
 
     private val logger = LoggerFactory.getLogger(Generator::class.java)
 
-    private val generateAdsense = { head: HEAD ->
+    private fun generateAdsense(head: HEAD) {
         val adsenseTag = config.propertyOrNull("ktor.analytics.adsense")?.getString() ?: ""
         head.script(src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js") {
             attributes.putIfAbsent("async", "true")
@@ -22,7 +22,7 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
         }
     }
 
-    private val generateHeader = { html: HTML ->
+    private fun generateHeader(html: HTML) {
         val analyticsTag = config.propertyOrNull("ktor.analytics.tag")?.getString() ?: ""
         html.head {
             generateAdsense(this)
@@ -42,9 +42,9 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
         }
     }
 
-    val generateForLeague = { html: HTML, leagueId: LeagueId ->
-        val ratings = repo.getRatingsForLeague(leagueId)
-        logger.info("Returning ratings: ${ratings?.joinToString{ it.toString() }}")
+    fun generateForLeague(html: HTML, leagueId: LeagueId, sortByDate: Boolean) {
+        val ratings = repo.getRatingsForLeague(leagueId, sortByDate)
+        logger.info("Returning ratings: ${ratings?.joinToString{ it.toString() }}, sortByDate: $sortByDate")
         generateHeader(html)
         html.body {
             div {
@@ -56,11 +56,13 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
                     a(classes = "link", href = "./about") { +"What is Laterball? ↠" }
                 }
                 div(classes = "center") {
-                    style = "width:500px"
+                    style = "width:600px"
                     LeagueId.values().forEach {
-                        a(classes = if (it == leagueId) "static" else "link", href = "./${it.path}") {
-                            style = "margin-left: 15px; margin-right: 15px;"
-                            +it.title
+                        h4(classes = "center") {
+                            a(classes = if (it == leagueId) "static" else "link", href = "./${it.path}") {
+                                style = "margin-left: 30px; margin-right: 30px;"
+                                +it.title
+                            }
                         }
                     }
                 }
@@ -68,10 +70,23 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
             br {}
             br {}
             div(classes = "center") {
+                style = "width:500px"
+                a(classes = if (sortByDate) "link" else "static", href = "./${leagueId.path}") {
+                    style = "margin-left: 15px; margin-right: 15px;"
+                    +"↡ Highest Rated"
+                }
+                a(classes = if (sortByDate) "static" else "link", href = "./${leagueId.path}?sort=date") {
+                    style = "margin-left: 15px; margin-right: 15px;"
+                    +"Most Recent ↡"
+                }
+            }
+            br {}
+            div(classes = "center") {
                 style = "width: 100%; text-align:center"
                 div(classes = "lb-container") {
                     style = "max-width: 1200px"
-                    ratings?.let {
+                    if (!ratings.isNullOrEmpty()) {
+                        val format = SimpleDateFormat("EEEE, d MMMM")
                         ul(classes = "lb-ul lb-card-4") {
                             ratings.forEach { rating ->
                                 li(classes = "lb-bar lb-border lb-round-xlarge fade-in") {
@@ -79,20 +94,26 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
                                             classes = "lb-bar-item lb-medium lb-right subtitle link",
                                             href = "https://www.google.com/search?q=${rating.homeTeam}+vs+${rating.awayTeam}+streaming+on+demand",
                                             target = "_blank") {
-                                        +"Where to watch? ↠"
+                                        +"↠"
                                     }
                                     div(classes = "center") {
                                         img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.homeLogo) {
-                                            style = "width:85px"
+                                            style = "height:100%"
                                         }
                                         div(classes = "lb-bar-item") {
-                                            span(classes = "lb-xxlarge  match") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
+                                            span(classes = "lb-xxlarge match") { +"${rating.homeTeam} vs ${rating.awayTeam}" }
+                                            br {}
+                                            span(classes = "center subtitle") { +format.format(rating.date) }
+                                            br {}
+                                            h5 (classes = "fade-in subtitle tooltip") {
+                                                +"Show score"
+                                                span(classes = "tooltiptext") { +rating.score }
+                                            }
                                         }
                                         img(classes = "lb-bar-item lb-circle lb-hide-small", src = rating.awayLogo) {
-                                            style = "width:85px"
+                                            style = "height:100%"
                                         }
                                     }
-                                    br {}
                                     div {
                                         var starsAdded = 0
                                         for (i in 1..rating.rating.toInt()) {
@@ -108,12 +129,15 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
                                             img(src = "/static/empty_star.svg") { style = "height:50px" }
                                         }
                                     }
+                                    br {}
                                 }
                             }
                         }
-                    } ?: h2(classes = "subtitle") {
-                        style = "width: 100%; text-align:center"
-                        +"No recent games, check back later!"
+                    } else {
+                        h2(classes = "subtitle") {
+                            style = "width: 100%; text-align:center"
+                            +"No recent games, check back later!"
+                        }
                     }
                 }
             }
@@ -121,7 +145,7 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
         }
     }
 
-    val generateAbout = { html: HTML ->
+    fun generateAbout(html: HTML) {
         generateHeader(html)
         html.body {
             div {
@@ -148,7 +172,7 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
                 }
             }
             span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
-            span(classes = "subtitle center") { +"Version 2.1.4" }
+            span(classes = "subtitle center") { +"Version 2.2.0" }
         }
     }
 }

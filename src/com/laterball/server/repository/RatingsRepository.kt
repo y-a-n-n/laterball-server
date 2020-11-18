@@ -37,7 +37,7 @@ class RatingsRepository(
         newRatingsListeners.remove(listener)
     }
 
-    fun getRatingsForLeague(leagueId: LeagueId): List<Rating>? {
+    fun getRatingsForLeague(leagueId: LeagueId, sortByDate: Boolean = false): List<Rating>? {
         val leagueMap = ratingsMap[leagueId] ?: ConcurrentHashMap()
         val currentTime = clock.time
         // Get completed fixtures in this league less that 1 week old
@@ -95,7 +95,7 @@ class RatingsRepository(
         // Inform listeners what's new
         newRatingsListeners.forEach { it.invoke(leagueId, normedNew) }
 
-        return normed
+        return if (sortByDate) normed.toMutableList().sortedByDescending { it.date.time } else normed
     }
 
     private fun normalize(ratings: List<Rating>): List<Rating> {

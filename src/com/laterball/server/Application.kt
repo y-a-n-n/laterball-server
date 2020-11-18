@@ -13,6 +13,7 @@ import io.ktor.http.content.*
 import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.html.respondHtml
+import io.ktor.response.respondRedirect
 import io.ktor.util.KtorExperimentalAPI
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.inject
@@ -66,14 +67,20 @@ fun Application.module() {
         }
 
         get("/") {
-            call.respondHtml {
-                generator.generateForLeague(this, LeagueId.EPL)
-            }
+            call.respondRedirect("/${LeagueId.EPL.path}")
         }
 
-        get("/${LeagueId.CHAMPIONS_LEAGUE.path}") {
-            call.respondHtml {
-                generator.generateForLeague(this, LeagueId.CHAMPIONS_LEAGUE)
+        LeagueId.values().forEach {leagueId ->
+            get("/${leagueId.path}") {
+                call.respondHtml {
+                    generator.generateForLeague(this, leagueId, false)
+                }
+            }
+
+            get("/${leagueId.path}?sort=date") {
+                call.respondHtml {
+                    generator.generateForLeague(this, leagueId, true)
+                }
             }
         }
 

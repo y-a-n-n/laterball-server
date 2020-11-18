@@ -2,6 +2,9 @@ package com.laterball.server.alg
 
 import com.laterball.server.api.model.*
 import com.laterball.server.model.Rating
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import java.util.*
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -44,11 +47,16 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
          swingFactor +
          totalShots * SHOTS_FACTOR
          totalPasses * PASSES_FACTOR
+ val date = try {
+  Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(fixture.event_date)))
+ } catch (e: Exception) {
+  Date()
+ }
  return Rating(
   fixture.fixture_id,
   fixture.homeTeam.team_name,
   fixture.awayTeam.team_name,
-  fixture.event_date,
+  date,
   fixture.homeTeam.logo,
   fixture.awayTeam.logo,
   rating.toFloat(),
