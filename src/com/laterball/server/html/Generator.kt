@@ -158,11 +158,11 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
                 }
                 h3(classes = "block center") {
                     +"Love to watch football on demand? Laterball tells you which games are the best to watch this week without spoiling the score for you."
-                    br {  }
-                    br {  }
+                    br {}
+                    br {}
                     +"Currently, Laterball lists the best English Premier League and Champions League games of the week, ranked by watchability."
-                    br {  }
-                    br {  }
+                    br {}
+                    br {}
                 }
             }
             span(classes = "subtitle center") { +"feedback: email hi at laterball dot com" }

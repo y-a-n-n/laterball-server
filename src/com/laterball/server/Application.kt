@@ -13,6 +13,7 @@ import io.ktor.http.content.*
 import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.html.respondHtml
+import io.ktor.request.queryString
 import io.ktor.response.respondRedirect
 import io.ktor.util.KtorExperimentalAPI
 import org.koin.ktor.ext.Koin
@@ -72,14 +73,9 @@ fun Application.module() {
 
         LeagueId.values().forEach {leagueId ->
             get("/${leagueId.path}") {
+                val sortByDate = call.request.queryParameters["sort"] == "date"
                 call.respondHtml {
-                    generator.generateForLeague(this, leagueId, false)
-                }
-            }
-
-            get("/${leagueId.path}?sort=date") {
-                call.respondHtml {
-                    generator.generateForLeague(this, leagueId, true)
+                    generator.generateForLeague(this, leagueId, sortByDate)
                 }
             }
         }
