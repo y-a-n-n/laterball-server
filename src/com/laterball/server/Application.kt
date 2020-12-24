@@ -4,7 +4,6 @@ import com.laterball.server.api.DataApi
 import com.laterball.server.html.Generator
 import com.laterball.server.model.LeagueId
 import com.laterball.server.repository.RatingsRepository
-import com.laterball.server.twitter.TwitterBot
 import io.ktor.application.*
 import io.ktor.config.ApplicationConfig
 import io.ktor.routing.*
@@ -13,7 +12,6 @@ import io.ktor.http.content.*
 import io.ktor.gson.*
 import io.ktor.features.*
 import io.ktor.html.respondHtml
-import io.ktor.request.queryString
 import io.ktor.response.respondRedirect
 import io.ktor.util.KtorExperimentalAPI
 import org.koin.ktor.ext.Koin
@@ -40,14 +38,12 @@ fun Application.module() {
     val repo by inject<RatingsRepository>()
     val api by inject<DataApi>()
     val config by inject<ApplicationConfig>()
-    val twitterBot by inject<TwitterBot>()
 
     install(CORS) {
         method(HttpMethod.Options)
         method(HttpMethod.Get)
         host("laterball.com", schemes = listOf("https"))
         host("laterball.et.r.appspot.com", schemes = listOf("https"))
-//        anyHost() // @TODO: Don't do this in production if possible. Try to limit it.
     }
 
     val generator = Generator(repo, config)
@@ -57,8 +53,6 @@ fun Application.module() {
     repo.getRatingsForLeague(LeagueId.EPL)
     repo.getRatingsForLeague(LeagueId.CHAMPIONS_LEAGUE)
     api.requestDelay = null
-
-    twitterBot.enabled = true
 
     routing {
         get("/about") {

@@ -21,7 +21,11 @@ class TwitterBot(
         private val clock: Clock = SystemClock()
 ) {
 
-    var enabled = false
+    var enabled = true
+    set(value) {
+        field = value
+        logger.info("Twitter bot ${this.hashCode()} enabled: $value")
+    }
 
     companion object {
         private val PROMO = listOf(
@@ -34,7 +38,6 @@ class TwitterBot(
     }
 
     private val logger = LoggerFactory.getLogger(TwitterBot::class.java)
-
 
     private var lastFixtureId: MutableList<Int>
 

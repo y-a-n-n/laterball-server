@@ -16,7 +16,6 @@ import io.ktor.utils.io.ByteReadChannel
 import org.junit.Before
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 internal class RatingsRepositoryTest {
 
@@ -30,7 +29,7 @@ internal class RatingsRepositoryTest {
     fun setUp() {
         clockMock = ClockMock()
         databaseMock = DatabaseMock()
-        val mockData = getResourceAsText("mockdata.txt").lines()
+        val mockData = getResourceAsText("test/mockdata.txt").lines()
         var req = -1
 
         client = HttpClient(MockEngine) {

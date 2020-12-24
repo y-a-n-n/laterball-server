@@ -4,9 +4,6 @@ import com.laterball.server.alg.determineRating
 import com.laterball.server.api.model.Fixture
 import com.laterball.server.model.LeagueId
 import com.laterball.server.model.Rating
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -39,6 +36,7 @@ class RatingsRepository(
 
     fun getRatingsForLeague(leagueId: LeagueId, sortByDate: Boolean = false): List<Rating>? {
         val leagueMap = ratingsMap[leagueId] ?: ConcurrentHashMap()
+        logger.info("Map for league $leagueId has ${leagueMap.size} ratings")
         val currentTime = clock.time
         // Get completed fixtures in this league less that 1 week old
         val timeFormatter = DateTimeFormatter.ISO_DATE_TIME
@@ -48,9 +46,13 @@ class RatingsRepository(
                 it.status == STATUS_FINISHED && currentTime - Date.from(Instant.from(timeFormatter.parse(it.event_date))).time < 604_800_000
             }
 
+        logger.info("There are ${relevantFixtures?.size} relevant fixtures at this time")
+
         val removeList = leagueMap.entries.filter { entry ->
             relevantFixtures?.find { entry.value.fixtureId == it.fixture_id } == null
         }.map { it.key }
+
+        logger.info("There are ${removeList.size} old fixtures to remove")
 
         // Remove old data from caches
         removeList.forEach {
@@ -72,6 +74,7 @@ class RatingsRepository(
             // Calculate the rating only if we don't already have it
             val existing = leagueMap[fixture.fixture_id]
             if (existing != null) {
+                logger.info("Found existing rating for ${fixture.fixture_id}")
                 existing
             } else {
                 val calculated = calculateRating(fixture)
@@ -100,6 +103,7 @@ class RatingsRepository(
 
     private fun normalize(ratings: List<Rating>): List<Rating> {
         val maxRating = ratings[0].rating
+        // 5 goals (or xG) is roughly 5 starts as a starting point
         val maxStars = min(ratings[0].goalsStat * 2, 10f)
         val starsFactor = maxStars / maxRating
         return ratings.map {
@@ -119,7 +123,7 @@ class RatingsRepository(
     }
 
     private fun calculateRating(fixture: Fixture): Rating? {
-        logger.info("Cache miss!")
+        logger.info("Cache miss! Calculating new rating for fixture ${fixture.fixture_id} ${fixture.homeTeam} - ${fixture.awayTeam}")
         val stats = statsRepository.getData(fixture)
         val odds = oddsRepository.getData(fixture)
         val events = eventsRepository.getData(fixture)
