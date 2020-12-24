@@ -17,16 +17,39 @@ private const val YELLOW_FACTOR = 5.0f
 private const val SHOTS_FACTOR = 10.0f
 private const val PASSES_FACTOR = 2.0f
 private const val RED_FACTOR = 15.0f
-private const val COMEBACK_FACTOR = 20.0
+private const val COMEBACK_FACTOR = 20.0f
+private const val LONG_SHOTS_FACTOR = 0.1f
+private const val CLOSE_SHOTS_FACTOR = 0.2f
 
 fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFixtureEvents): Rating {
- val totalGoals = fixture.goalsAwayTeam + fixture.goalsHomeTeam
+
+ val homeWinValue = odd.values.find { it.value == "Home" }?.odd?.toFloat() ?: 0f
+ val awayWinValue = odd.values.find { it.value == "Away" }?.odd?.toFloat() ?: 0f
+
+ // If it's a big win for favourites it's less interesting so their goals should only count half
+ val isFavouriteWin = (awayWinValue - homeWinValue > UPSET_ODDS_MARGIN && fixture.goalsHomeTeam >= fixture.goalsAwayTeam) ||
+         (homeWinValue - awayWinValue > UPSET_ODDS_MARGIN && fixture.goalsAwayTeam >= fixture.goalsHomeTeam)
+ val winningMargin = abs(fixture.goalsAwayTeam - fixture.goalsHomeTeam)
+ var homeGoalsFactor = 1f
+ var awayGoalsFactor = 1f
+ if (winningMargin >= 4 && isFavouriteWin) {
+  if (homeWinValue < awayWinValue) {
+   homeGoalsFactor = 0.5f
+  } else {
+   awayGoalsFactor = 0.5f
+  }
+ }
+
+ val totalGoals = awayGoalsFactor * fixture.goalsAwayTeam + homeGoalsFactor * fixture.goalsHomeTeam
+ val closeShots = stats.ShotsInsidebox.sumStat() * CLOSE_SHOTS_FACTOR
+ val longShots = stats.ShotsOutsidebox.sumStat() * LONG_SHOTS_FACTOR
+// val goalStat = max(totalGoals, + closeShots + longShots)
+
  val totalReds = stats.RedCards.sumStat()
  val totalYellows = stats.YellowCards.sumStat()
  val totalShots = stats.TotalShots.sumStat()
  val totalPasses = stats.PassesAccurate.sumStat()
- val homeWinValue = odd.values.find { it.value == "Home" }?.odd?.toFloat() ?: 0f
- val awayWinValue = odd.values.find { it.value == "Away" }?.odd?.toFloat() ?: 0f
+
  val isUpset = (homeWinValue - awayWinValue > UPSET_ODDS_MARGIN && fixture.goalsHomeTeam >= fixture.goalsAwayTeam) ||
          (awayWinValue - homeWinValue > UPSET_ODDS_MARGIN && fixture.goalsAwayTeam >= fixture.goalsHomeTeam)
  val upsetFactor = if (isUpset) {
@@ -34,6 +57,7 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
  } else {
   0f
  }
+
  val homeTeamId = fixture.homeTeam.team_id
  val leadInfo = events.leadInfo(homeTeamId)
  val swing = abs(leadInfo.first) + abs(leadInfo.second)
@@ -47,11 +71,13 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
          swingFactor +
          totalShots * SHOTS_FACTOR
          totalPasses * PASSES_FACTOR
+
  val date = try {
   Date.from(Instant.from(DateTimeFormatter.ISO_DATE_TIME.parse(fixture.event_date)))
  } catch (e: Exception) {
   Date()
  }
+
  return Rating(
   fixture.fixture_id,
   fixture.homeTeam.team_name,
@@ -59,9 +85,9 @@ fun determineRating(fixture: Fixture, odd: Bet, stats: Statistics, events: ApiFi
   date,
   fixture.homeTeam.logo,
   fixture.awayTeam.logo,
-  rating.toFloat(),
+  rating,
   "${fixture.goalsHomeTeam} - ${fixture.goalsAwayTeam}",
-  totalGoals.toFloat()
+  totalGoals
  )
 }
 
