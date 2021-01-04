@@ -1,4 +1,4 @@
-![banner](/home/yann/Documents/project/git/laterball-server/banner.png)
+![banner](banner.png)
 # ⚽▶️ Laterball
 This is the source for the Laterball football match watchability generator running at [laterball.com](http://laterball.com)
 
