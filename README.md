@@ -1,6 +1,6 @@
 ![banner](banner.png)
 # ⚽▶️ Laterball
-This is the source for the Laterball football match watchability generator running at [laterball.com](http://laterball.com)
+This is the source for the Laterball football match watchability rating generator running at [laterball.com](http://laterball.com)
 
 ## What is Laterball?
 
@@ -32,3 +32,10 @@ Currently, clicking on the ↠ icon next to a match just Googles where to watch 
 
 Crowdsourcing ratings could improve rating accuracy, and could be weighted against the statistically-determined ratings
 
+### Algorithm improvements
+
+Accounting for:
+
+- xG
+- Relative league position/importance of match
+- Timing of goals (late winner etc)
