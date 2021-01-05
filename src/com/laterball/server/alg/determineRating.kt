@@ -72,7 +72,7 @@ private fun HomeAwayStat.sumStat(): Int {
 fun ApiFixtureEvents.leadInfo(homeTeamId: Int): Triple<Int, Int, Int> {
  var homeLead = 0
  var maxLead = 0
- var minLead = Int.MAX_VALUE
+ var minLead = 0
  this.events
   .filter { it.type == "Goal" }
   .sortedBy { it.elapsed }
