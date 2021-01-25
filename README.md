@@ -32,7 +32,9 @@ Currently, clicking on the ↠ icon next to a match just Googles where to watch 
 
 Crowdsourcing ratings could improve rating accuracy, and could be weighted against the statistically-determined ratings
 
-### Algorithm improvements
+tells you which games are the best to watch this week without spoiling the score for you.
+
+Currently, Laterball lists the best English Premier### Algorithm improvements
 
 Accounting for:
 

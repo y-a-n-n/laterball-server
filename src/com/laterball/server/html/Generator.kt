@@ -156,7 +156,7 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
                     style = "width:200px"
                     a(classes = "link", href = "./") { +"↞ Home" }
                 }
-                h3(classes = "block center") {
+                h3(classes = "subtitle center") {
                     +"Love to watch football on demand? Laterball tells you which games are the best to watch this week without spoiling the score for you."
                     br {}
                     br {}
@@ -167,12 +167,17 @@ class Generator(private val repo: RatingsRepository, private val config: Applica
             }
             span(classes = "subtitle center") { +"feedback: email hi at laterball dot com" }
             span(classes = "subtitle center") {
-                a(href = "https://twitter.com/laterball") {
+                a(href = "https://twitter.com/laterball", target = "_blank") {
+                    style = "margin-right: 10px;"
                     img(src = "/static/twitter.png") { style = "width: 50px; height: 50px"}
+                }
+                a(href = "https://github.com/y-a-n-n/laterball-server", target = "_blank") {
+                    style = "margin-left: 10px;"
+                    img(src = "/static/github.png") { style = "width: 50px; height: 50px"}
                 }
             }
             span(classes = "subtitle center") { +"© ${SimpleDateFormat("YYYY").format(Date())} Laterball" }
-            span(classes = "subtitle center") { +"Version 2.2.4" }
+            span(classes = "subtitle center") { +"Version 2.2.5" }
         }
     }
 }
