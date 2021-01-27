@@ -16,11 +16,11 @@ The Ktor server returns static HTML to the configured routes (one for each suppo
 
 ## Twitter bot
 
-A Twitter bot tweets the ratings for 4- and 5-start games (maximum one per kickoff time, maximum one every 4 hours) to [@laterball](https://twitter.com/laterball) 
+A Twitter bot tweets the ratings for 4- and 5-star games (maximum one per kickoff time, maximum one every 4 hours) to [@laterball](https://twitter.com/laterball) 
 
 ## Hosting and deployment
 
-This repository contains a GitHub action for deploying to Google App Engine, provided the appropriate secrets are set in the repository. The required secrets are defined in the `application.conf` file. The action runs every time a new tag is pushed to master.
+This repository contains a GitHub action for deploying to Google App Engine, provided the appropriate secrets are set in the repository. The required secrets are defined in the `application.conf` file. The action runs every time a new tag is pushed to main.
 
 ## Future work
 
